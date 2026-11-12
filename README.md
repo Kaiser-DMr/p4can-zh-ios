@@ -7,8 +7,8 @@
 - iOS App 是**纯外壳**：页面仍然由板子提供（`http://192.168.4.1`），App 负责全屏容器、本地网络权限、
   连不上时的原生引导页、设置面板与缓存管理。已打包成未签名 IPA，可直接用 Sideloadly / AltStore 自签安装。
 
-> **下载**：[Releases · v1.0.0](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
-> —— 未签名 IPA（`P4CAN-1.0.0-unsigned.ipa`）+ 汉化脚本（`zh-bilingual.js`）
+> **下载**：[Releases · v1.1.0](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
+> —— 未签名 IPA（`P4CAN-1.1.0-unsigned.ipa`）+ 汉化脚本（`zh-bilingual.js`）
 
 ![首页 · 深色](docs/screenshots/device-home-dark.png)
 
@@ -29,6 +29,7 @@
 │   └── README.md                 #   原理、覆盖率、排版坑、加词条方法
 ├── ios/                          # iOS 外壳 App（SwiftUI，iOS 16+）
 │   ├── P4CAN/                    #   源码：入口、探活、网页容器、引导页、设置
+│   │   └── zh-bilingual.js       #   随包的汉化脚本（打包前从 i18n/ 同步）
 │   ├── P4CAN.xcodeproj/          #   Xcode 工程（含共享 scheme，可直接打开跑）
 │   ├── MacPreview/               #   macOS 真窗口预览（看液态玻璃，不入包）
 │   ├── demo/                     #   本机模拟设备（没有硬件也能看连上之后的页面）
@@ -38,7 +39,7 @@
 │   ├── build-ipa.sh              #   编译 + 打未签名 IPA
 │   └── README.md                 #   实现细节、视觉规范、预览方法
 ├── dist/
-│   └── P4CAN-1.0.0-unsigned.ipa  # 未签名 IPA，2.3 MB（Release 同步一份）
+│   └── P4CAN-1.1.0-unsigned.ipa  # 未签名 IPA，2.3 MB（Release 同步一份）
 └── docs/
     ├── install-guide.html        # 安装指南（Sideloadly 签名 / Xcode 直装 / 排错）
     ├── build-handbook.html       # 项目解读与硬件搭建手册
@@ -88,24 +89,43 @@ python3 /path/to/i18n/apply_zh.py . --build
 ### 安装（不需要开发者账号）
 
 1. 到 [**Releases**](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest) 下载
-   `P4CAN-1.0.0-unsigned.ipa`（仓库内也留了一份 [`dist/`](dist/) 备份；SHA-256 见文末）。
+   `P4CAN-1.1.0-unsigned.ipa`（仓库内也留了一份 [`dist/`](dist/) 备份；SHA-256 见文末）。
 2. 用 [Sideloadly](https://sideloadly.io/) 或 AltStore 自签：把 IPA 拖进窗口，填自己的 Apple ID，Start。
 3. 手机上 **设置 → 通用 → VPN 与设备管理 → 开发者 App** → 选自己的 Apple ID → **信任**。
 4. 免费账号签出来的证书 **7 天过期**，到期重新签一次即可（App 内数据不会丢）。
 
 也可以直接用 Xcode 打开 `ios/P4CAN.xcodeproj` 跑到手机上，或用 `ios/build-ipa.sh` 自己打一份。
 
+### 中文界面：不用刷汉化固件
+
+App 里带了一份 `zh-bilingual.js`（就是 `i18n/` 里那一份，打包时自动同步），用 `WKUserScript`
+在网页加载完后注入。**所以刷原厂英文固件，用这个 App 连上去看到的也是中文**：
+
+| 固件 | 界面语言 | 设置入口 |
+|---|---|---|
+| 原厂 v3.29.3（英文） | 中文（App 注入） | 长按页面 0.7 秒 / 设置页的 `P4-CAN App` 行 |
+| 打了汉化补丁的固件 | 中文（固件自带） | 设置页的 `P4-CAN App` 行 |
+
+- 两种来源不会打架：补丁里加了单例守卫，固件已经内置汉化时，App 注入的这份会直接退出
+  （实测固件版 `owner=firmware`，页面元素只被标记一次）。
+- 关掉 **设置 → 语言 → 中文界面** 就是原始的英文页面，改了立刻重新加载生效。
+- 注入发生在页面解析之后，为了不让你先看到一秒英文，`documentStart` 会把整页压成透明，
+  注入完再淡入；脚本万一出错，1.2 秒的兜底定时器也会把页面显示出来（不会白屏）。
+- 中文仍然是 `::after` 伪元素，**不能选中复制、Ctrl+F 搜不到**——和固件内置汉化是同一套代价。
+
 ### 用法
 
 1. 板子上电，手机连它的热点 `P4-CAN-XXXX`（密码 `12345678`）。
 2. 打开 App。连不上时是原生引导页：三步说明、一键跳系统 WiFi 设置、手动填地址、常见问题排查。
 3. 连上后自动进入仪表盘。下拉刷新；**长按页面 0.7 秒**可随时打开 App 设置。
-4. App 设置里有：设备地址、外观（跟随系统 / 浅色 / 深色）、清除网页缓存、重新加载。
+4. App 设置里有：设备地址、外观（跟随系统 / 浅色 / 深色）、**中文界面开关**、清除网页缓存、重新加载。
 
 ### 实测过的两件事
 
-- **配原厂固件也能用**：界面是纯英文的原始页面，功能、排版都正常（[截图](docs/screenshots/device-stock-english.png)）。
-  区别只有一个——原厂固件没有汉化补丁插入的那行 `P4-CAN App` 入口，此时靠**长按页面**进 App 设置。
+- **配原厂固件也能用，而且也是中文**：网页本身是英文的原始页面，App 注入中文后正常显示
+  （注入前的样子见[截图](docs/screenshots/device-stock-english.png)）。区别只有一个——原厂固件
+  没有汉化补丁插入的那行 `P4-CAN App` 入口，此时靠**长按页面**进 App 设置，进过一次设置页后
+  App 也会把那一行补上。
 - **切后台/断网不崩**：探活每 3 秒一次，失败自动回到引导页，回来时再自动跳回仪表盘。
 
 ### 视觉
@@ -146,7 +166,7 @@ UNPATCHED=1 bash demo.sh          # 模拟原厂（未汉化）固件
 
 ```bash
 cd ios
-bash build-ipa.sh                 # → dist/P4CAN-1.0.0-unsigned.ipa（未签名）
+bash build-ipa.sh                 # → dist/P4CAN-1.1.0-unsigned.ipa（未签名）
 python3 tools/make-icon.py 图.webp  # 换图标
 ```
 
@@ -186,9 +206,9 @@ python3 tools/make-icon.py 图.webp  # 换图标
 
 ---
 
-`dist/P4CAN-1.0.0-unsigned.ipa`（与 Release v1.0.0 附件为同一文件）
+`dist/P4CAN-1.1.0-unsigned.ipa`（与 Release v1.1.0 附件为同一文件）
 
 ```
-大小    2,380,330 字节
-SHA-256 334ddf6eee3f778712f99838ed9c7c2763418a0cc537faa85e0895012a7d066b
+大小    2,413,279 字节
+SHA-256 f6b348530545a38cbf9a043a6f39002087ea544d0291c64823a52efded9d4dce
 ```

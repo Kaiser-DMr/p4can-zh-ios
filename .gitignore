@@ -11,6 +11,9 @@ xcuserdata/
 # 本地重新生成的产物
 ios/MacPreview/P4CANPreview.app/
 ios/图标/AppIcon.iconset/
+# build-ipa.sh 在本目录出的包，仓库根目录的 dist/ 才是发布件
+ios/dist/
+ios/Payload/
 
 # 系统
 .DS_Store

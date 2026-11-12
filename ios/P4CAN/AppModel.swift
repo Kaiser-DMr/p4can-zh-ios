@@ -43,6 +43,11 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// 是否往设备网页里注入中文。默认开：原厂英文固件也能看懂。
+    @Published var zhEnabled: Bool {
+        didSet { UserDefaults.standard.set(zhEnabled, forKey: "p4can.zh") }
+    }
+
     // MARK: - 运行时状态
 
     @Published private(set) var state: LinkState = .probing
@@ -62,6 +67,12 @@ final class AppModel: ObservableObject {
             keepAwake = true
         } else {
             keepAwake = UserDefaults.standard.bool(forKey: "p4can.keepAwake")
+        }
+
+        if UserDefaults.standard.object(forKey: "p4can.zh") == nil {
+            zhEnabled = true
+        } else {
+            zhEnabled = UserDefaults.standard.bool(forKey: "p4can.zh")
         }
 
         let cfg = URLSessionConfiguration.ephemeral

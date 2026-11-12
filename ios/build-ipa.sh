@@ -5,8 +5,19 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 APP_NAME="P4CAN"
-VERSION="1.0.0"
+VERSION="1.1.0"
 CONF="${1:-Release}"
+
+# 汉化脚本的唯一来源是 ../i18n/zh-bilingual.js，打包前同步进 App 资源目录，
+# 避免两份文件各改各的。改完文案只需动 i18n/ 那份。
+SYNC_FROM="../i18n/zh-bilingual.js"
+SYNC_TO="P4CAN/zh-bilingual.js"
+if [ -f "$SYNC_FROM" ]; then
+  cp "$SYNC_FROM" "$SYNC_TO"
+  echo "==> 同步汉化脚本: $SYNC_TO ($(wc -c < "$SYNC_TO" | tr -d ' ') 字节)"
+else
+  echo "!! 找不到 $SYNC_FROM，App 将以无汉化状态打包"
+fi
 
 echo "==> 编译 ${APP_NAME} (${CONF} / iphoneos / 未签名)"
 xcodebuild -project P4CAN.xcodeproj \

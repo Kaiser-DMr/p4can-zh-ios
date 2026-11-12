@@ -29,6 +29,17 @@ python3 apply_zh.py ./P4can-universal-unlock --revert --build
 注入块由 `<!--P4ZH-BEGIN-->` / `<!--P4ZH-END-->` 包住，重复执行只替换这一段。
 之后按上游原来的流程用 arduino-cli 编译烧录，固件其它代码一行不动。
 
+### 也可以不刷固件：由 iOS App 注入
+
+同一份 `zh-bilingual.js` 也被打进了 iOS App（`ios/P4CAN/zh-bilingual.js`，打包时自动从本目录同步），
+App 用 `WKUserScript` 在页面加载完成后把它注进去。所以**原厂英文固件也能显示中文**，不用动板子。
+
+- 脚本开头有单例守卫：`window.__p4zhBooted` 或 `#p4zh-style` 已存在时直接 `return`。
+  这样"固件已内置补丁 + App 又注入"也不会跑两套 `MutationObserver` 互相抢。
+- 注入是在 HTML 解析之后，会先闪一下英文，所以 App 在 `documentStart` 先把页面压透明，
+  注入完再淡入；1.2 秒兜底定时器保证脚本出问题时不会白屏。
+- 这段逻辑在 `ios/P4CAN/DeviceWebView.swift`，改文案仍然只改这里的 `zh-bilingual.js`。
+
 ## 原理
 
 没有改任何逻辑，只做"加属性"：

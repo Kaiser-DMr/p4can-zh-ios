@@ -16,6 +16,8 @@
 		3A0000000000000000000007 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0000000000000000000007 /* SettingsView.swift */; };
 		3A0000000000000000000008 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A0000000000000000000009 /* Assets.xcassets */; };
 		3A0000000000000000000009 /* Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000000000000000000000A /* Glass.swift */; };
+		3A000000000000000000000B /* ZhPatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A000000000000000000000C /* ZhPatch.swift */; };
+		3A000000000000000000000A /* zh-bilingual.js in Resources */ = {isa = PBXBuildFile; fileRef = 2A000000000000000000000B /* zh-bilingual.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +32,8 @@
 		2A0000000000000000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2A0000000000000000000009 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2A000000000000000000000A /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
+		2A000000000000000000000C /* ZhPatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhPatch.swift; sourceTree = "<group>"; };
+		2A000000000000000000000B /* zh-bilingual.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "zh-bilingual.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,11 +70,13 @@
 				2A0000000000000000000002 /* AppModel.swift */,
 				2A0000000000000000000003 /* Theme.swift */,
 				2A000000000000000000000A /* Glass.swift */,
+				2A000000000000000000000C /* ZhPatch.swift */,
 				2A0000000000000000000004 /* RootView.swift */,
 				2A0000000000000000000005 /* DeviceWebView.swift */,
 				2A0000000000000000000006 /* ConnectView.swift */,
 				2A0000000000000000000007 /* SettingsView.swift */,
 				2A0000000000000000000009 /* Assets.xcassets */,
+				2A000000000000000000000B /* zh-bilingual.js */,
 				2A0000000000000000000008 /* Info.plist */,
 			);
 			path = P4CAN;
@@ -136,6 +142,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3A0000000000000000000008 /* Assets.xcassets in Resources */,
+				3A000000000000000000000A /* zh-bilingual.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,6 +155,7 @@
 			files = (
 				3A0000000000000000000003 /* Theme.swift in Sources */,
 				3A0000000000000000000009 /* Glass.swift in Sources */,
+				3A000000000000000000000B /* ZhPatch.swift in Sources */,
 				3A0000000000000000000002 /* AppModel.swift in Sources */,
 				3A0000000000000000000001 /* P4CANApp.swift in Sources */,
 				3A0000000000000000000004 /* RootView.swift in Sources */,
@@ -221,7 +229,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -230,7 +238,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.p4can.universal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -247,7 +255,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -256,7 +264,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.p4can.universal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

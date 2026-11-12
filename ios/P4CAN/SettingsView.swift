@@ -20,6 +20,7 @@ struct SettingsView: View {
             Form {
                 statusSection
                 appearanceSection
+                languageSection
                 deviceSection
                 displaySection
                 webSection
@@ -94,6 +95,32 @@ struct SettingsView: View {
             Text("外观")
         } footer: {
             Text("背景为纯色磨砂玻璃，浅色与深色各有一套配色。连上设备查看仪表盘时固定使用深色——设备网页本身是深色的，浅色状态栏会看不清。")
+        }
+    }
+
+    // MARK: - 语言
+
+    private var languageSection: some View {
+        Section {
+            Toggle(isOn: $model.zhEnabled) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("中文界面")
+                        .font(.body)
+                    Text("由 App 注入网页，不影响固件")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .tint(Theme.accent)
+            .frame(minHeight: Metrics.minTap)
+            .disabled(!ZhPatch.isAvailable)
+            .accessibilityHint("关闭后显示设备原本的英文界面")
+        } header: {
+            Text("语言")
+        } footer: {
+            Text(ZhPatch.isAvailable
+                 ? "原厂英文固件也能显示中文：App 加载网页后自己补一层中文注释，不改固件、不影响任何车辆功能。关掉这个开关就是原始的英文界面。若固件本身已内置汉化，此处开关不起作用。"
+                 : "当前安装包内没有附带汉化脚本，界面语言完全由固件决定。")
         }
     }
 
@@ -203,7 +230,7 @@ struct SettingsView: View {
     private var aboutSection: some View {
         Section {
             LabeledContent("App 版本") {
-                Text("1.0.0 (1)").foregroundStyle(.secondary)
+                Text("1.1.0 (2)").foregroundStyle(.secondary)
             }
             LabeledContent("适配固件") {
                 Text("v3.29.3").foregroundStyle(.secondary)

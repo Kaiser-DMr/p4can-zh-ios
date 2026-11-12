@@ -17,6 +17,8 @@ P4CAN-iOS/
 │   ├── SettingsView.swift    # 设置面板（材质 sheet）
 │   ├── Theme.swift           # 设计令牌 / 背景 / 内容卡片 / 滚动边缘
 │   ├── Glass.swift           # 液态玻璃组件（仅控制层）
+│   ├── ZhPatch.swift         # 读取随包的汉化脚本
+│   ├── zh-bilingual.js       # 汉化脚本本体（打包前从 ../i18n/ 同步，勿单独改）
 │   ├── Info.plist            # ATS 例外、本地网络权限说明
 │   └── Assets.xcassets/      # AppIcon(1024) / AccentColor / LaunchBg
 ├── tools/make-icon.py        # 图标流水线：源图 → 1024 满铺 → AppIcon + 预览 + icns
@@ -32,11 +34,12 @@ P4CAN-iOS/
 
 ```bash
 cd P4CAN-iOS
-./build-ipa.sh              # 默认 Release，产出 dist/P4CAN-1.0.0-unsigned.ipa
+./build-ipa.sh              # 默认 Release，产出 dist/P4CAN-1.1.0-unsigned.ipa
 ./build-ipa.sh Debug        # Debug 版
 ```
 
-脚本用 `CODE_SIGNING_ALLOWED=NO` 编出真机 arm64 包，再按 `Payload/` 结构压成 ipa。
+脚本先把 `../i18n/zh-bilingual.js` 同步到 `P4CAN/zh-bilingual.js`（唯一来源是 i18n 那份，
+改文案只动它），再用 `CODE_SIGNING_ALLOWED=NO` 编出真机 arm64 包，按 `Payload/` 结构压成 ipa。
 产物**未签名**，需要用 Sideloadly / AltStore / Xcode 以你自己的 Apple ID 签名后安装。
 
 > `OTHER_SWIFT_FLAGS='$(inherited) -disable-sandbox'` 是为了在本机受限环境下让
@@ -50,6 +53,8 @@ cd P4CAN-iOS
 | 本地网络权限 | `NSLocalNetworkUsageDescription`，iOS 14+ 首次访问会弹窗 |
 | 连通性判定 | 每 3 秒 GET `/api/wifi/status`，2.5s 超时；成功才切到网页层 |
 | 网页持久化 | `WKWebsiteDataStore.default()`，localStorage 与 cookie 跨启动保留 |
+| 中文界面 | `ZhPatch` 读出随包的 `zh-bilingual.js`，`WKUserScript` 在 `documentEnd` 注入；`documentStart` 先把页面压透明，注入完淡入，1.2s 兜底防止白屏 |
+| 避免重复翻译 | 补丁里有单例守卫（`__p4zhBooted` / `p4zh-style`），固件已内置汉化时注入的那份直接退出 |
 | 外链 | 非 http(s) scheme 交给系统，`target=_blank` 留在应用内打开 |
 | 屏幕常亮 | 仅在线且开关打开时 `isIdleTimerDisabled = true` |
 | 刷新 | 下拉手势（UIRefreshControl）+ 设置里的「重新加载」 |
@@ -60,23 +65,30 @@ cd P4CAN-iOS
 | 滚动边缘 | iOS 26 的 `scrollEdgeEffectStyle(.soft, for: .top)`，旧系统无操作 |
 | 图标 | 源图（玻璃 T）四边是奶油白、圆角 26%，比 iOS 遮罩的 22.4% 更圆，直接塞进去四角会露白；`tools/make-icon.py` 按方块圆角挖空后用扩散把边框色补进四角，输出 1024 满铺、无 alpha 的 PNG |
 
-## 配哪种固件都行
+## 配哪种固件都行，界面都是中文
 
-App 里没有任何页面资源，全部内容来自设备 `http://192.168.4.1/`，所以：
+页面仍然全部来自设备 `http://192.168.4.1/`，但 App 会把 `zh-bilingual.js` 注进去，
+所以**原厂英文固件也能显示中文**：
 
 | 刷的固件 | 界面语言 | 功能 | 进 App 设置 |
 |---|---|---|---|
-| 原厂 v3.29.3 | 英文 | 全部正常 | 长按页面 0.7 秒（首次进页面会提示一次） |
-| 打了汉化补丁的 v3.29.3 | 中英双语 | 全部正常 | 网页"设置 → 系统 → P4-CAN App" |
+| 原厂 v3.29.3 | 中文（App 注入） | 全部正常 | 长按页面 0.7 秒（首次进页面会提示一次） |
+| 打了汉化补丁的 v3.29.3 | 中文（固件自带） | 全部正常 | 网页"设置 → 系统 → P4-CAN App" |
 
-汉化只改页面：`dashboard_source.html` 里加 `data-p4zh` 属性由 CSS 画中文，原文保留；
-不拦截请求、不改事件、不动固件逻辑。代价是页面 gzip 从 82 KB 变成 108 KB，首屏多传 26 KB。
+两条路径互不打架：补丁开头加了单例守卫，固件已经内置汉化时（`window.__p4zhBooted` 或
+`#p4zh-style` 已存在），App 注入的这份直接 `return`，页面元素只被标记一次。
 
-> 想在本机看"原厂固件"下的样子：`UNPATCHED=1 bash demo.sh`。
+汉化只改页面：加 `data-p4zh` 属性由 CSS `::after` 画中文，原文保留；不拦截请求、不改事件、
+不动固件逻辑。App 注入时同样如此，只是把这一步从"编译进固件"挪到了"加载后补一层"。
+
+App 设置里 **语言 → 中文界面** 可以关掉，关掉后重新加载即为原始英文页面。
+
+> 想在本机看"原厂固件"下的样子：`UNPATCHED=1 bash demo.sh`（这时页面里没有任何中文，
+> 正好用来看注入前后的差别）。
 
 ## 版本
 
-- App 1.0.0 (1)
+- App 1.1.0 (2)：新增 App 侧中文注入（原厂固件也显示中文）+ 语言开关
 - 适配固件 P4-CAN Universal v3.29.3
 - 最低 iOS 16.0，iPhone / iPad 通用，支持横屏
 - iOS 26+ 启用 Liquid Glass；旧系统自动回退材质，版式与信息层级不变

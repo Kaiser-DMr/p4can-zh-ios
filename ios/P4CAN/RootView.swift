@@ -44,6 +44,7 @@ struct RootView: View {
         DeviceWebView(
             url: model.baseURL,
             reloadToken: model.reloadToken,
+            zhEnabled: model.zhEnabled,
             isLoading: $isLoading,
             onNavigationFailed: { msg in banner = msg },
             onAppSettings: { model.showSettings = true },

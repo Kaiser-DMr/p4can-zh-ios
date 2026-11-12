@@ -4,8 +4,18 @@
  *          因此新加的界面元素只要文案在词典里就会自动有中文。
  * 英文原文保持不变，中文用 CSS ::after 追加；<option> 例外，直接改文本。
  * 控制台执行 p4zh(false) 可即时切回纯英文。
+ * v2.1：加单例守卫——同一个页面只启动一次。固件已内置本补丁时，
+ *       iOS App 侧注入的同一份脚本会直接退出，避免两套 MutationObserver 互相打架。
  */
 (function () {
+  // 已经启动过（固件内置的那份先跑了）或样式已存在，就不再重复启动。
+  if (window.__p4zhBooted || document.getElementById('p4zh-style')) {
+    window.__p4zhOwner = window.__p4zhOwner || 'firmware';
+    return;
+  }
+  window.__p4zhBooted = true;
+  window.__p4zhOwner = 'self';
+
   var ZH = {
     "AP": "AP",
     "EU": "欧版",

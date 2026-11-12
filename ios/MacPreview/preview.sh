@@ -45,6 +45,7 @@ xcrun swiftc -parse-as-library -swift-version 5 -disable-sandbox \
   -D P4CAN_PREVIEW \
   -sdk "$SDK" -target arm64-apple-macos26.0 \
   ../P4CAN/Theme.swift ../P4CAN/Glass.swift ../P4CAN/AppModel.swift \
+  ../P4CAN/ZhPatch.swift \
   ../P4CAN/ConnectView.swift ../P4CAN/SettingsView.swift WebPane.swift main.swift \
   -o "$APP/Contents/MacOS/P4CANPreview"
 
