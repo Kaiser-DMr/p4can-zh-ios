@@ -16,6 +16,9 @@ ios/图标/AppIcon.iconset/
 .DS_Store
 Thumbs.db
 
+# Release 说明草稿
+.release-notes.md
+
 # 编译出来的可执行文件（脚本会重新生成）
 ios/MacPreview/P4CANPreview
 ios/Preview/render
