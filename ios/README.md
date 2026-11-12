@@ -85,8 +85,8 @@ App 里没有任何页面资源，全部内容来自设备 `http://192.168.4.1/`
 
 玻璃只用于**控制层**（浮动按钮、底部操作条、失败横幅），内容层一律用标准材质卡片——这是 HIG 对
 Liquid Glass 的硬性要求。色板、圆角（32/24/16/14 同心）、8pt 栅格与字号层级集中在 `Theme.swift`。
-设计稿见 [`docs/liquid-glass-design.html`](../docs/liquid-glass-design.html)，安装与使用见仓库根目录
-[`README.md`](../README.md)。
+设计稿见 [液态玻璃设计稿](https://kaiser-dmr.github.io/p4can-zh-ios/liquid-glass-design.html)
+（源文件 `docs/liquid-glass-design.html`），安装与使用见仓库根目录 [`README.md`](../README.md)。
 
 ### 底部操作条
 

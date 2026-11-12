@@ -110,7 +110,7 @@ python3 /path/to/i18n/apply_zh.py . --build
 这是 HIG 对 Liquid Glass 的硬性要求。旧系统自动回退 `ultraThinMaterial`，版式与信息层级不变。
 背景是纯色磨砂（深 `#0B0D11` / 浅 `#F4F6F9`）+ 极细噪点，支持跟随系统 / 手动明暗切换。
 
-设计稿：[`docs/liquid-glass-design.html`](docs/liquid-glass-design.html)
+设计稿：[在线预览](https://kaiser-dmr.github.io/p4can-zh-ios/liquid-glass-design.html) · 源文件 [`docs/liquid-glass-design.html`](docs/liquid-glass-design.html)
 
 <p align="center">
   <img src="docs/screenshots/connect-dark.png" width="240" alt="未连接 · 引导页">
@@ -151,12 +151,16 @@ python3 tools/make-icon.py 图.webp  # 换图标
 
 ## 文档
 
+在线看（HTML 已发布到 GitHub Pages，手机也能打开）：<https://kaiser-dmr.github.io/p4can-zh-ios/>
+
 | 文档 | 内容 |
 |---|---|
-| [安装指南](docs/install-guide.html) | Sideloadly 签名步骤、Xcode 直装、常见报错、配哪种固件 |
-| [项目解读与搭建手册](docs/build-handbook.html) | 硬件清单、接线、编译环境、三路 CAN 说明 |
-| [烧录速查卡](docs/flash-cheatsheet.html) | 一页纸的编译烧录命令与分区参数 |
-| [液态玻璃设计稿](docs/liquid-glass-design.html) | 双机对照、色板、圆角与栅格 |
+| [安装指南](https://kaiser-dmr.github.io/p4can-zh-ios/install-guide.html) | Sideloadly 签名步骤、Xcode 直装、常见报错、配哪种固件 |
+| [项目解读与搭建手册](https://kaiser-dmr.github.io/p4can-zh-ios/build-handbook.html) | 硬件清单、接线、编译环境、三路 CAN 说明 |
+| [烧录速查卡](https://kaiser-dmr.github.io/p4can-zh-ios/flash-cheatsheet.html) | 一页纸的编译烧录命令与分区参数 |
+| [液态玻璃设计稿](https://kaiser-dmr.github.io/p4can-zh-ios/liquid-glass-design.html) | 双机对照、色板、圆角与栅格 |
+
+源文件在 [`docs/`](docs/) 下，直接双击本地打开也可以（都是自包含的单文件 HTML，无外部依赖）。
 
 ## 致谢
 

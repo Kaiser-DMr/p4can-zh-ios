@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P4-CAN 中英双语汉化 + iOS 外壳 App · 文档</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --card:#fff; --ink:#1b1b19; --sub:#6b6b66;
+    --line:#e2e0da; --accent:#1f6f4a; --code:#f0efea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:36px 20px 70px;background:var(--bg);color:var(--ink);
+    font:15px/1.65 -apple-system,"Helvetica Neue","PingFang SC",sans-serif;}
+  .wrap{max-width:820px;margin:0 auto}
+  h1{font-size:23px;margin:0 0 8px;letter-spacing:-.2px}
+  .lede{color:var(--sub);font-size:13.5px;margin:0 0 26px}
+  .badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.4px;
+    padding:3px 9px;border-radius:999px;background:#e8f2ec;color:var(--accent);
+    border:1px solid #cfe3d7;vertical-align:middle;margin-left:8px}
+  a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;margin-bottom:12px;text-decoration:none;color:inherit;
+    transition:border-color .15s ease,transform .15s ease}
+  a.card:hover{border-color:#c9c6bc;transform:translateY(-1px)}
+  .t{font-weight:600;font-size:15px;margin:0 0 4px}
+  .d{color:var(--sub);font-size:13px;margin:0}
+  .meta{font-size:11.5px;color:var(--sub);letter-spacing:.3px;text-transform:uppercase;
+    margin:0 0 8px;font-weight:600}
+  footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);
+    color:var(--sub);font-size:12.5px}
+  footer a{color:var(--accent);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--code);
+    padding:1px 5px;border-radius:4px;font-size:12.5px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>P4-CAN 中英双语汉化 + iOS 外壳 App<span class="badge">v1.0.0</span></h1>
+  <p class="lede">
+    给 ESP32-P4 车载 CAN 控制器的网页仪表盘加中英双语，并包成原生 iOS App。
+    代码与 IPA 在 <a href="https://github.com/Kaiser-DMr/p4can-zh-ios">GitHub 仓库</a>。
+  </p>
+
+  <p class="meta">使用</p>
+  <a class="card" href="install-guide.html">
+    <p class="t">iOS App 安装指南</p>
+    <p class="d">Sideloadly / AltStore 免开发者账号自签、Xcode 直装、信任证书、7 天过期怎么办、常见报错排查。</p>
+  </a>
+
+  <p class="meta">搭建与刷写</p>
+  <a class="card" href="build-handbook.html">
+    <p class="t">项目解读与硬件搭建手册</p>
+    <p class="d">ESP32-P4 + C6 三路 CAN 的原理、硬件清单、接线、编译环境与车型 profile 说明。</p>
+  </a>
+  <a class="card" href="flash-cheatsheet.html">
+    <p class="t">烧录速查卡</p>
+    <p class="d">一页纸：arduino-cli 命令、分区选择、参数与烧完后的验证步骤。</p>
+  </a>
+
+  <p class="meta">设计</p>
+  <a class="card" href="liquid-glass-design.html">
+    <p class="t">液态玻璃设计稿</p>
+    <p class="d">双机对照：色板、圆角与栅格、控制层玻璃与内容层材质的分工、深浅两套配色。</p>
+  </a>
+
+  <footer>
+    汉化补丁与 iOS 外壳为本仓库作者编写；固件与网页仪表盘来自
+    <a href="https://github.com/06066060606060/P4can-universal-unlock">06066060606060/P4can-universal-unlock</a>，
+    本仓库不包含其源码。涉及车辆改装，风险自负，请遵守当地法律法规。
+  </footer>
+</div>
+</body>
+</html>
