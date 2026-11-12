@@ -18,6 +18,8 @@ P4CAN-iOS/
 │   ├── Theme.swift           # 设计令牌 / 背景 / 内容卡片 / 滚动边缘
 │   ├── Glass.swift           # 液态玻璃组件（仅控制层）
 │   ├── ZhPatch.swift         # 读取随包的汉化脚本
+│   ├── PreviewView.swift     # 离线界面预览（WKWebView 装 preview.html）
+│   ├── preview.html          # 示例页面：自写，不含上游代码，带 DEMO 标注
 │   ├── zh-bilingual.js       # 汉化脚本本体（打包前从 ../i18n/ 同步，勿单独改）
 │   ├── Info.plist            # ATS 例外、本地网络权限说明
 │   └── Assets.xcassets/      # AppIcon(1024) / AccentColor / LaunchBg
@@ -34,7 +36,7 @@ P4CAN-iOS/
 
 ```bash
 cd P4CAN-iOS
-./build-ipa.sh              # 默认 Release，产出 dist/P4CAN-1.1.0-unsigned.ipa
+./build-ipa.sh              # 默认 Release，产出 dist/P4CAN-1.2.0-unsigned.ipa
 ./build-ipa.sh Debug        # Debug 版
 ```
 
@@ -55,6 +57,7 @@ cd P4CAN-iOS
 | 网页持久化 | `WKWebsiteDataStore.default()`，localStorage 与 cookie 跨启动保留 |
 | 中文界面 | `ZhPatch` 读出随包的 `zh-bilingual.js`，`WKUserScript` 在 `documentEnd` 注入；`documentStart` 先把页面压透明，注入完淡入，1.2s 兜底防止白屏 |
 | 避免重复翻译 | 补丁里有单例守卫（`__p4zhBooted` / `p4zh-style`），固件已内置汉化时注入的那份直接退出 |
+| 离线预览 | 连接页「界面预览」→ `PreviewView` 用 `WKWebView.loadFileURL` 加载包内 `preview.html`；不注册 `p4canApp` 通道，补丁也就不会往示例页插入口行 |
 | 外链 | 非 http(s) scheme 交给系统，`target=_blank` 留在应用内打开 |
 | 屏幕常亮 | 仅在线且开关打开时 `isIdleTimerDisabled = true` |
 | 刷新 | 下拉手势（UIRefreshControl）+ 设置里的「重新加载」 |
@@ -83,12 +86,22 @@ cd P4CAN-iOS
 
 App 设置里 **语言 → 中文界面** 可以关掉，关掉后重新加载即为原始英文页面。
 
+### 没有设备时：界面预览
+
+连接页第二张卡片是「界面预览」，打开的是包里的 `preview.html`——**自写的示例页面**，
+顶部固定标 `DEMO · 示例数据，未连接设备`，数据全部写死，不发任何报文、不访问网络。
+底部导航可切 Home / Devices / Settings / LAB，开关能点，用来演示或提前熟悉界面。
+
+示例页里的文案特意用上游仪表盘的真实词条（`Steering` / `Nag Killer` / `RUNNING` / `BODY` …），
+所以它同样会被 `zh-bilingual.js` 翻译——关掉中文开关再看一次，就能直观对比双语并列的效果。
+
 > 想在本机看"原厂固件"下的样子：`UNPATCHED=1 bash demo.sh`（这时页面里没有任何中文，
 > 正好用来看注入前后的差别）。
 
 ## 版本
 
-- App 1.1.0 (2)：新增 App 侧中文注入（原厂固件也显示中文）+ 语言开关
+- App 1.2.0 (3)：新增「界面预览」，没连设备也能看示例界面
+- App 1.1.0 (2)：App 侧中文注入（原厂固件也显示中文）+ 语言开关
 - 适配固件 P4-CAN Universal v3.29.3
 - 最低 iOS 16.0，iPhone / iPad 通用，支持横屏
 - iOS 26+ 启用 Liquid Glass；旧系统自动回退材质，版式与信息层级不变

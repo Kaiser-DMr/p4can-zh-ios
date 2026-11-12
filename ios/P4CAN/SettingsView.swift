@@ -230,7 +230,7 @@ struct SettingsView: View {
     private var aboutSection: some View {
         Section {
             LabeledContent("App 版本") {
-                Text("1.1.0 (2)").foregroundStyle(.secondary)
+                Text("1.2.0 (3)").foregroundStyle(.secondary)
             }
             LabeledContent("适配固件") {
                 Text("v3.29.3").foregroundStyle(.secondary)

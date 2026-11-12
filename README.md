@@ -6,9 +6,10 @@
 - 汉化是**注入式的**：不动固件任何一行逻辑代码，只往网页里加一层中文注释，随时可以一条命令还原成英文。
 - iOS App 是**纯外壳**：页面仍然由板子提供（`http://192.168.4.1`），App 负责全屏容器、本地网络权限、
   连不上时的原生引导页、设置面板与缓存管理。已打包成未签名 IPA，可直接用 Sideloadly / AltStore 自签安装。
+- App **自带汉化脚本**，刷原厂英文固件也能显示中文；**没连设备**时还能进「界面预览」，用示例数据看仪表盘。
 
-> **下载**：[Releases · v1.1.0](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
-> —— 未签名 IPA（`P4CAN-1.1.0-unsigned.ipa`）+ 汉化脚本（`zh-bilingual.js`）
+> **下载**：[Releases · v1.2.0](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
+> —— 未签名 IPA（`P4CAN-1.2.0-unsigned.ipa`）+ 汉化脚本（`zh-bilingual.js`）
 
 ![首页 · 深色](docs/screenshots/device-home-dark.png)
 
@@ -29,7 +30,9 @@
 │   └── README.md                 #   原理、覆盖率、排版坑、加词条方法
 ├── ios/                          # iOS 外壳 App（SwiftUI，iOS 16+）
 │   ├── P4CAN/                    #   源码：入口、探活、网页容器、引导页、设置
-│   │   └── zh-bilingual.js       #   随包的汉化脚本（打包前从 i18n/ 同步）
+│   │   ├── zh-bilingual.js       #   随包的汉化脚本（打包前从 i18n/ 同步）
+│   │   ├── PreviewView.swift     #   离线界面预览容器
+│   │   └── preview.html          #   示例页面（自写，不含上游代码）
 │   ├── P4CAN.xcodeproj/          #   Xcode 工程（含共享 scheme，可直接打开跑）
 │   ├── MacPreview/               #   macOS 真窗口预览（看液态玻璃，不入包）
 │   ├── demo/                     #   本机模拟设备（没有硬件也能看连上之后的页面）
@@ -39,7 +42,7 @@
 │   ├── build-ipa.sh              #   编译 + 打未签名 IPA
 │   └── README.md                 #   实现细节、视觉规范、预览方法
 ├── dist/
-│   └── P4CAN-1.1.0-unsigned.ipa  # 未签名 IPA，2.3 MB（Release 同步一份）
+│   └── P4CAN-1.2.0-unsigned.ipa  # 未签名 IPA，2.3 MB（Release 同步一份）
 └── docs/
     ├── install-guide.html        # 安装指南（Sideloadly 签名 / Xcode 直装 / 排错）
     ├── build-handbook.html       # 项目解读与硬件搭建手册
@@ -89,7 +92,7 @@ python3 /path/to/i18n/apply_zh.py . --build
 ### 安装（不需要开发者账号）
 
 1. 到 [**Releases**](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest) 下载
-   `P4CAN-1.1.0-unsigned.ipa`（仓库内也留了一份 [`dist/`](dist/) 备份；SHA-256 见文末）。
+   `P4CAN-1.2.0-unsigned.ipa`（仓库内也留了一份 [`dist/`](dist/) 备份；SHA-256 见文末）。
 2. 用 [Sideloadly](https://sideloadly.io/) 或 AltStore 自签：把 IPA 拖进窗口，填自己的 Apple ID，Start。
 3. 手机上 **设置 → 通用 → VPN 与设备管理 → 开发者 App** → 选自己的 Apple ID → **信任**。
 4. 免费账号签出来的证书 **7 天过期**，到期重新签一次即可（App 内数据不会丢）。
@@ -112,6 +115,20 @@ App 里带了一份 `zh-bilingual.js`（就是 `i18n/` 里那一份，打包时�
 - 注入发生在页面解析之后，为了不让你先看到一秒英文，`documentStart` 会把整页压成透明，
   注入完再淡入；脚本万一出错，1.2 秒的兜底定时器也会把页面显示出来（不会白屏）。
 - 中文仍然是 `::after` 伪元素，**不能选中复制、Ctrl+F 搜不到**——和固件内置汉化是同一套代价。
+
+### 没设备也能看：界面预览
+
+连接页上有「界面预览」入口，不用刷板子、不用联网，直接看仪表盘长什么样：
+
+<p align="center">
+  <img src="docs/screenshots/preview-demo.png" width="240" alt="界面预览 · 首页">
+  <img src="docs/screenshots/preview-demo-devices.png" width="240" alt="界面预览 · 设备">
+</p>
+
+- 页面是**我们自己写的**（`ios/P4CAN/preview.html`），不包含上游任何代码；数据全是写死的示例值，
+  顶部一直挂着 `DEMO · 示例数据，未连接设备`。
+- 底部导航能切 Home / Devices / Settings / LAB，开关能点，纯演示，不会发任何报文。
+- 中文同样走 `zh-bilingual.js` 注入，所以关掉「中文界面」这里也会跟着变英文——正好用来对比。
 
 ### 用法
 
@@ -166,7 +183,7 @@ UNPATCHED=1 bash demo.sh          # 模拟原厂（未汉化）固件
 
 ```bash
 cd ios
-bash build-ipa.sh                 # → dist/P4CAN-1.1.0-unsigned.ipa（未签名）
+bash build-ipa.sh                 # → dist/P4CAN-1.2.0-unsigned.ipa（未签名）
 python3 tools/make-icon.py 图.webp  # 换图标
 ```
 
@@ -206,9 +223,9 @@ python3 tools/make-icon.py 图.webp  # 换图标
 
 ---
 
-`dist/P4CAN-1.1.0-unsigned.ipa`（与 Release v1.1.0 附件为同一文件）
+`dist/P4CAN-1.2.0-unsigned.ipa`（与 Release v1.2.0 附件为同一文件）
 
 ```
-大小    2,413,279 字节
-SHA-256 f6b348530545a38cbf9a043a6f39002087ea544d0291c64823a52efded9d4dce
+大小    2,435,817 字节
+SHA-256 7a6c611170c8a8e395cc383ca0badfc64dc4066de6a7680bf5caefd01bb732f0
 ```

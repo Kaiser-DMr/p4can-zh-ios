@@ -8,6 +8,7 @@ struct ConnectView: View {
 
     @State private var draftHost: String = ""
     @State private var showHelp = false
+    @State private var showPreview = false
     @FocusState private var hostFocused: Bool
 
     var body: some View {
@@ -18,6 +19,7 @@ struct ConnectView: View {
                 VStack(alignment: .leading, spacing: Metrics.sectionGap) {
                     header
                     statusCard
+                    previewCard
                     stepsSection
                     addressSection
                     helpSection
@@ -258,6 +260,53 @@ struct ConnectView: View {
         }
     }
 
+    // MARK: - 界面预览
+
+    /// 设备不在手边时的入口：用 App 自带的示例页看仪表盘长什么样
+    @ViewBuilder
+    private var previewCard: some View {
+        #if os(iOS)
+        SurfaceCard(padding: 0) {
+            Button {
+                showPreview = true
+            } label: {
+                HStack(spacing: 13) {
+                    Image(systemName: "iphone.gen3")
+                        .font(.system(size: 16, weight: .medium))
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(Theme.accent)
+                        .frame(width: 26)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("界面预览")
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(.primary)
+                        Text("设备不在手边也能看仪表盘长什么样（示例数据）")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer(minLength: 4)
+
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 15)
+                .frame(minHeight: Metrics.minTap)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("界面预览。用示例数据查看仪表盘界面")
+        }
+        .fullScreenCover(isPresented: $showPreview) {
+            PreviewView(zhEnabled: model.zhEnabled)
+        }
+        #endif
+    }
+
     // MARK: - 排查
 
     private var helpSection: some View {
@@ -320,7 +369,7 @@ struct ConnectView: View {
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("App 1.0.0 (1) · 固件 P4-CAN Universal v3.29.3")
+            Text("App 1.2.0 (3) · 固件 P4-CAN Universal v3.29.3")
             Text("界面由设备自带网页提供，本 App 仅作原生外壳")
         }
         .font(.caption2)

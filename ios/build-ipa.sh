@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 APP_NAME="P4CAN"
-VERSION="1.1.0"
+VERSION="1.2.0"
 CONF="${1:-Release}"
 
 # 汉化脚本的唯一来源是 ../i18n/zh-bilingual.js，打包前同步进 App 资源目录，
