@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P4CAN iOS App 安装指南</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --card:#fff; --ink:#1b1b19; --sub:#6b6b66;
+    --line:#e2e0da; --accent:#1f6f4a; --warn:#a64b18; --code:#f0efea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:28px 20px 60px;background:var(--bg);color:var(--ink);
+    font:15px/1.65 -apple-system,"Helvetica Neue","PingFang SC",sans-serif;}
+  .wrap{max-width:820px;margin:0 auto}
+  header{margin-bottom:26px}
+  h1{font-size:23px;margin:0 0 6px;letter-spacing:-.2px}
+  .lede{color:var(--sub);font-size:13.5px;margin:0}
+  .badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.4px;
+    padding:3px 9px;border-radius:999px;background:#e8f2ec;color:var(--accent);
+    vertical-align:middle;margin-left:8px;border:1px solid #cfe3d7}
+  h2{font-size:15px;margin:30px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:9px}
+  h2 .n{width:22px;height:22px;border-radius:6px;background:var(--ink);color:#fff;
+    font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:8px;
+    padding:13px 15px;overflow-x:auto;font-size:12.5px;line-height:1.75;margin:10px 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#232320}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--code);
+    padding:1px 5px;border-radius:4px;font-size:12.5px;border:1px solid var(--line)}
+  pre code{background:none;border:0;padding:0}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--sub);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.k{font-weight:600;white-space:nowrap}
+  .pill{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;white-space:nowrap}
+  .p-yes{background:#e8f2ec;color:var(--accent)}
+  .p-no{background:#fbeee6;color:var(--warn)}
+  .note{border-left:3px solid var(--warn);background:#fdf7f2;padding:11px 14px;
+    border-radius:0 8px 8px 0;font-size:13.5px;margin:12px 0}
+  .note b{color:var(--warn)}
+  .ok{border-left:3px solid var(--accent);background:#f1f7f3;padding:11px 14px;
+    border-radius:0 8px 8px 0;font-size:13.5px;margin:12px 0}
+  ol,ul{margin:10px 0;padding-left:22px}
+  li{margin:5px 0}
+  .kv{display:grid;grid-template-columns:110px 1fr;gap:6px 14px;font-size:13.5px}
+  .kv dt{color:var(--sub)}
+  .kv dd{margin:0;font-weight:500}
+  footer{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);
+    color:var(--sub);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>P4CAN iOS App <span class="badge">已编译 · 待签名</span></h1>
+  <p class="lede">把车上的 P4-CAN 控制器网页包装成原生 App：全屏无地址栏、自带连不上时的引导页、支持横屏与下拉刷新。界面已按 iOS 26 的液态玻璃（Liquid Glass）体系重做。</p>
+</header>
+
+<h2><span class="n">1</span>成品信息</h2>
+<div class="card">
+  <dl class="kv">
+    <dt>安装包</dt><dd>P4CAN-iOS/dist/P4CAN-1.0.0-unsigned.ipa（1.5 MB）</dd>
+    <dt>Bundle ID</dt><dd>com.p4can.universal</dd>
+    <dt>版本</dt><dd>1.0.0 (Build 1)</dd>
+    <dt>最低系统</dt><dd>iOS 16.0（iOS 26 及以上启用液态玻璃，旧系统自动回退材质，版式不变）</dd>
+    <dt>架构</dt><dd>arm64（真机，不含模拟器切片）</dd>
+    <dt>签名状态</dt><dd>未签名 —— 本机没有 Apple 开发者证书，需你用自己 Apple ID 签一次</dd>
+  </dl>
+</div>
+
+<div class="note">
+  <b>为什么要自己签名：</b>iOS 不允许安装任何未签名 App。本机执行 <code>security find-identity</code> 返回 0 个证书，所以只能交付「未签名 IPA」，由下面的工具用你的 Apple ID 现场签名再装。
+</div>
+
+<h2><span class="n">2</span>三种装法怎么选</h2>
+<div class="card">
+  <table>
+    <tr><th>方式</th><th>需要</th><th>有效期</th><th>适合</th></tr>
+    <tr>
+      <td class="k">Sideloadly</td>
+      <td>Mac/Windows + 数据线 + 免费 Apple ID</td>
+      <td><span class="pill p-no">7 天</span></td>
+      <td>最快，十分钟装完</td>
+    </tr>
+    <tr>
+      <td class="k">Xcode 直接 Run</td>
+      <td>这台 Mac + Xcode（已装 27.0）</td>
+      <td><span class="pill p-no">7 天</span></td>
+      <td>要改代码、调试日志</td>
+    </tr>
+    <tr>
+      <td class="k">AltStore / SideStore</td>
+      <td>先装 AltServer，同一 Wi-Fi</td>
+      <td><span class="pill p-yes">自动续签</span></td>
+      <td>长期日常用</td>
+    </tr>
+    <tr>
+      <td class="k">付费开发者账号</td>
+      <td>$99/年</td>
+      <td><span class="pill p-yes">1 年</span></td>
+      <td>不想每 7 天折腾</td>
+    </tr>
+  </table>
+  <p style="margin:8px 0 0;color:var(--sub);font-size:12.5px">
+    免费 Apple ID 的 7 天限制是苹果规则，与 App 无关；到期后重装即可，车辆数据和网页偏好不会丢在设备端。
+  </p>
+</div>
+
+<h2><span class="n">3</span>方式 A：Sideloadly（推荐先试）</h2>
+<div class="card">
+  <ol>
+    <li>从 <code>sideloadly.io</code> 下载 Mac 版并打开。</li>
+    <li>iPhone 用数据线连 Mac，手机上点「信任此电脑」。</li>
+    <li>把 <code>dist/P4CAN-1.0.0-unsigned.ipa</code> 拖进 Sideloadly 窗口。</li>
+    <li>在 <b>Apple ID</b> 一栏填你的 Apple ID，点 <b>Start</b>，输入密码（部分账号需要 App 专用密码）。</li>
+    <li>装完在手机上：<b>设置 → 通用 → VPN 与设备管理 → 开发者 App</b> → 选你的 Apple ID → <b>信任</b>。</li>
+  </ol>
+  <div class="ok">装好后桌面出现「P4-CAN」图标：蓝紫玻璃质感的字母 T 方块，深色桌面下边框会有一圈高光。</div>
+</div>
+
+<h2><span class="n">4</span>方式 B：Xcode 直接跑（本机现成）</h2>
+<div class="card">
+  <p>工程已经在 <code>P4CAN-iOS/P4CAN.xcodeproj</code>，双击打开即可：</p>
+  <ol>
+    <li>Xcode 顶部选中 <b>P4CAN</b> target → <b>Signing &amp; Capabilities</b>。</li>
+    <li>勾上 <b>Automatically manage signing</b>，Team 选你的个人 Apple ID（没有就 Add an Account 登录一下）。</li>
+    <li>如果提示 Bundle ID 被占用，把 <code>com.p4can.universal</code> 改成 <code>com.你的名字.p4can</code>。</li>
+    <li>iPhone 插上，顶部设备选你的手机，按 <b>⌘R</b>。</li>
+  </ol>
+  <p>命令行重新出包：</p>
+  <pre><code>cd P4CAN-iOS
+./build-ipa.sh          # 产出 dist/P4CAN-1.0.0-unsigned.ipa</code></pre>
+</div>
+
+<h2><span class="n">5</span>第一次打开要注意</h2>
+<div class="card">
+  <table>
+    <tr><th>现象</th><th>说明</th></tr>
+    <tr>
+      <td class="k">弹「查找本地网络设备」</td>
+      <td>点 <b>允许</b>。不允许就连不上 192.168.4.1，这是 iOS 14+ 的强制权限。</td>
+    </tr>
+    <tr>
+      <td class="k">提示「无线局域网无互联网连接」</td>
+      <td>点 <b>保持连接</b>，不要点断开。设备热点本来就不通外网。</td>
+    </tr>
+    <tr>
+      <td class="k">首页停在「连接步骤」页</td>
+      <td>说明还没连上热点。App 每 3 秒自动探测，连上会自动跳进仪表盘。</td>
+    </tr>
+    <tr>
+      <td class="k">热点名不是 P4-CAN-XXXX</td>
+      <td>网页里改过 Wi-Fi 配置的话，AP 名会变；或长按复位键回 AP 模式。</td>
+    </tr>
+  </table>
+</div>
+
+<div class="note">
+  <b>装车前提醒：</b>仪表盘上的功能开关直连车辆总线，务必在停车、P 挡状态下配置；行驶中不要在手机上操作。App 本身不含任何控制逻辑，所有功能与安全策略都在固件里。
+</div>
+
+<h2><span class="n">6</span>常见报错</h2>
+<div class="card">
+  <table>
+    <tr><th>报错</th><th>处理</th></tr>
+    <tr><td class="k">Unable to install "P4CAN"</td><td>换根数据线 / 换 USB 口；确认手机已解锁并信任电脑。</td></tr>
+    <tr><td class="k">The app ID cannot be registered</td><td>Bundle ID 撞车，改成 <code>com.你的名字.p4can</code> 重签。</td></tr>
+    <tr><td class="k">无法验证 App</td><td>没信任描述文件，去「设置 → 通用 → VPN 与设备管理」点信任。</td></tr>
+    <tr><td class="k">闪退 / 图标灰掉</td><td>免费证书已过期（7 天），重新签一次。</td></tr>
+    <tr><td class="k">iOS 15 及以下装不上</td><td>最低 iOS 16.0，需在工程里把 Deployment Target 调低后重编。</td></tr>
+  </table>
+</div>
+
+<h2><span class="n">7</span>App 里有什么</h2>
+<div class="card">
+  <table>
+    <tr><th>页面</th><th>作用</th></tr>
+    <tr><td class="k">连接引导页</td><td>三步图文说明热点连接、一键跳「无线局域网」设置、手动改设备 IP、连不上的排查清单。</td></tr>
+    <tr><td class="k">仪表盘（网页）</td><td>设备自带页面，已是你之前那套中英双语汉化版，功能完全一致。</td></tr>
+    <tr><td class="k">设置面板</td><td>设备地址、保持屏幕常亮、清除网页缓存、重新加载、版本信息。以半透明材质 sheet 呈现，底下内容仍在。</td></tr>
+  </table>
+  <p style="margin:8px 0 0;color:var(--sub);font-size:12.5px">
+    仪表盘页面上<b>没有叠加任何原生浮动按钮</b>——设备网页自带的悬浮底部导航和右侧开关会被压住。
+    进 App 设置的办法：网页「设置 → 系统 → P4-CAN App」那一行（装的是汉化固件时）；
+    原厂固件没有这一行，<b>长按页面 0.7 秒</b>即可，首次进页面会飘一次提示。下拉页面可刷新。
+  </p>
+</div>
+
+
+<h2><span class="n">8</span>界面用的是液态玻璃</h2>
+<div class="card">
+  <table>
+    <tr><th>层面</th><th>做法</th></tr>
+    <tr><td class="k">控制层</td><td>浮动按钮、底部操作条、失败横幅用 <code>glassEffect</code>（iOS 26+），带淡色 tint 与按下缩放反馈。</td></tr>
+    <tr><td class="k">内容层</td><td>卡片与列表用标准材质 <code>.regularMaterial</code> + 半透明描边。官方 HIG 明确玻璃属于控制层，铺满内容区会打散层级。</td></tr>
+    <tr><td class="k">合并渲染</td><td>底部按钮同处一个 <code>GlassEffectContainer</code>，靠近时玻璃会自然融合。</td></tr>
+    <tr><td class="k">底部两个按钮</td><td>「打开无线局域网设置」与右侧刷新键同为 <b>46pt 高</b>，中心线对齐。主按钮是<b>无色磨砂玻璃 + 淡青 tint</b>，不是实心色块；主次由品牌色图标与字重表达。</td></tr>
+    <tr><td class="k">窄屏与大字号</td><td>宽度不足时主按钮自动收成图标；辅助功能字号（≥ 辅助功能 3）直接转图标，保证不截字、高度不膨胀。</td></tr>
+    <tr><td class="k">背景</td><td><b>纯色磨砂</b>：单一纯色 + 一层极细噪点，没有彩色光晕与渐变亮带。玻璃靠自身顶亮下暗的边缘高光被辨识。</td></tr>
+    <tr><td class="k">明暗切换</td><td>设置 →「外观」可选 跟随系统 / 浅色 / 深色，深浅各一套完整配色，切换即时生效。</td></tr>
+    <tr><td class="k">无障碍</td><td>全量语义字号（Dynamic Type）、触控区 ≥44pt、玻璃不受「减弱透明度」影响（系统自动处理）。</td></tr>
+  </table>
+  <p style="margin:8px 0 0;color:var(--sub);font-size:12.5px">
+    设计稿见 <code>P4CAN-iOS-液态玻璃设计稿.html</code>，可对照看版式与玻璃层次的预期效果；
+    深浅两套的实际运行截图见 <code>P4CAN-iOS-运行截图-深色.png</code> / <code>-浅色.png</code>。
+  </p>
+</div>
+
+<h2><span class="n">9</span>浅色与深色</h2>
+<div class="card">
+  <table>
+    <tr><th>项</th><th>说明</th></tr>
+    <tr><td class="k">怎么切</td><td>设置面板 →「外观」→ 跟随系统 / 浅色 / 深色。选择会保存，下次启动沿用。</td></tr>
+    <tr><td class="k">为什么进仪表盘变深</td><td>设备自带网页是深色的，浅色状态栏压上去读不清，因此在线状态固定深色。</td></tr>
+    <tr><td class="k">浅色下改了什么</td><td>品牌青绿由 #4AD9C2 压深到 #0B8778，白底上的正文对比度约 4.5:1；卡片描边改用黑 8%，阴影减到 10%。</td></tr>
+  </table>
+</div>
+
+<h2><span class="n">10</span>配原厂固件还是汉化固件</h2>
+<div class="card">
+  <p style="margin:0 0 8px">App 里没有任何网页资源，界面全部来自设备 <code>http://192.168.4.1/</code>。
+  所以同一个 IPA，刷什么固件就显示什么语言，两种都能用：</p>
+  <table>
+    <tr><th>刷的固件</th><th>界面语言</th><th>功能</th><th>怎么进 App 设置</th></tr>
+    <tr><td class="k">原厂 v3.29.3</td><td>纯英文</td><td>全部正常</td><td>长按页面 0.7 秒</td></tr>
+    <tr><td class="k">打了汉化补丁</td><td>中英双语</td><td>全部正常</td><td>网页「设置 → 系统 → P4-CAN App」</td></tr>
+  </table>
+  <p style="margin:10px 0 0;color:var(--sub);font-size:12.5px">
+    汉化只改前端页面：给文字元素加 <code>data-p4zh</code> 属性、由 CSS <code>::after</code> 画中文，原文一个字没删；
+    不拦截任何请求、不改事件处理、不碰固件逻辑（CAN / AP / Profile 都在 <code>.ino</code> 里，未改动）。
+    代价是页面 gzip 体积 82 KB → 108 KB，首屏多传 26 KB，软 AP 上约多 0.1–0.2 秒。
+  </p>
+</div>
+
+<footer>
+  P4CAN iOS 1.0.0 · 对应固件 P4-CAN Universal v3.29.3 · 工程源码在 P4CAN-iOS/，仅作网页原生外壳，不含车辆控制代码。
+</footer>
+
+</div>
+</body>
+</html>

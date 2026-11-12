@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P4-CAN Universal v3.29.3 · 项目解读与搭建手册</title>
+<style>
+  :root{
+    --ink:#1b1d21; --ink2:#4a4f57; --ink3:#7a808a;
+    --line:#e3e6ea; --bg:#f6f7f9; --card:#fff;
+    --accent:#a4262c; --warnbg:#fff8e6; --warn:#8a5a00;
+    --okbg:#eef7f1; --ok:#1f6f43; --code:#f0f2f5;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:32px 20px 64px; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:14px; line-height:1.68; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px; margin:0 auto}
+  header{margin-bottom:26px}
+  .kicker{font-size:12px; letter-spacing:.12em; color:var(--accent); font-weight:600; text-transform:uppercase}
+  h1{margin:6px 0 8px; font-size:26px; letter-spacing:-.01em; font-weight:700}
+  .sub{color:var(--ink2); font-size:13.5px}
+  .meta{margin-top:12px; display:flex; flex-wrap:wrap; gap:8px}
+  .tag{font-size:12px; padding:3px 9px; border-radius:999px; background:#eceef1; color:var(--ink2); border:1px solid var(--line)}
+  .tag.red{background:#fbeeee; color:var(--accent); border-color:#f0d6d7}
+
+  section{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 24px; margin-bottom:18px}
+  h2{font-size:16px; margin:0 0 14px; display:flex; align-items:center; gap:9px}
+  h2 .n{display:inline-flex; width:22px; height:22px; border-radius:7px; background:var(--ink); color:#fff;
+        font-size:12px; align-items:center; justify-content:center; font-weight:600; flex:none}
+  h3{font-size:13.5px; margin:20px 0 8px; color:var(--ink2); font-weight:600}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0; padding-left:20px}
+  li{margin:5px 0}
+  strong{font-weight:600}
+
+  code{background:var(--code); border:1px solid var(--line); border-radius:5px; padding:1px 5px; font-size:12.5px;
+       font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  pre{background:#1e2024; color:#e6e8ec; padding:14px 16px; border-radius:10px; overflow-x:auto; margin:10px 0;
+      font-size:12.5px; line-height:1.6; font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  pre .c{color:#8b93a1}
+  pre .g{color:#7fd4a0}
+
+  table{width:100%; border-collapse:collapse; margin:10px 0 4px; font-size:13px}
+  th{text-align:left; font-weight:600; color:var(--ink2); font-size:12px; letter-spacing:.03em;
+     padding:8px 9px; border-bottom:1.5px solid var(--line); background:#fafbfc; white-space:nowrap}
+  td{padding:8px 9px; border-bottom:1px solid var(--line); vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  td.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; white-space:nowrap}
+
+  .note{border-left:3px solid var(--accent); background:#fdf7f7; padding:12px 14px; border-radius:0 8px 8px 0; margin:14px 0; font-size:13px}
+  .note.warn{border-color:#d9a300; background:var(--warnbg); color:#4a3a12}
+  .note.ok{border-color:#2f8f5b; background:var(--okbg); color:#14432a}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:14px 0}
+  .stat{border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:#fafbfc}
+  .stat .k{font-size:11px; color:var(--ink3); letter-spacing:.05em}
+  .stat .v{font-size:15px; font-weight:600; margin-top:3px}
+  .stat .d{font-size:12px; color:var(--ink2); margin-top:2px}
+
+  .steps{counter-reset:s; list-style:none; padding:0; margin:12px 0}
+  .steps li{counter-increment:s; position:relative; padding-left:34px; margin:14px 0}
+  .steps li::before{content:counter(s); position:absolute; left:0; top:1px; width:22px; height:22px; border-radius:50%;
+    background:#eceef1; color:var(--ink2); font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center}
+  .steps li b{display:block; margin-bottom:4px}
+
+  footer{margin-top:26px; color:var(--ink3); font-size:12px; text-align:center; line-height:1.9}
+
+  @media print{
+    body{background:#fff; padding:0; font-size:11.5px}
+    section{break-inside:avoid; border-color:#ccc; padding:14px}
+    pre{background:#f4f5f7; color:#222; border:1px solid #ddd}
+    h1{font-size:20px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Project Brief &amp; Build Guide</div>
+  <h1>P4-CAN Universal v3.29.3 · 项目解读与搭建手册</h1>
+  <div class="sub">ESP32-P4 + 3× SN65HVD230 三路 CAN 的特斯拉 Model 3/Y/YL 车总线固件 · 面向 2024 款 Model Y</div>
+  <div class="meta">
+    <span class="tag">ESP32-P4 / Arduino-ESP32 3.3.12</span>
+    <span class="tag">3 × TWAI 原生控制器</span>
+    <span class="tag">5 个车型 profile</span>
+    <span class="tag red">非公开道路用途</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">1</span>它是什么：T2CAN 版的“三总线”重写</h2>
+  <p>同一作者的 <b>T2CAN-Universal</b> 只用板载<b>两路</b> CAN，所以必须二选一：要么接 <code>Body + Chassis</code>（有 Advanced EAP，没扭矩法 NAG），要么接 <code>Party + Chassis</code>（有 NAG，丢 Advanced EAP）。
+    这个 P4 版把 MCU 换成 <b>ESP32-P4</b>，而 P4 片上就有 <b>3 个 TWAI 控制器</b>，于是三路 CAN 可以同时在线，<b>不再有二选一</b>。</p>
+  <table>
+    <thead><tr><th>维度</th><th>T2CAN 版</th><th>P4-CAN 版（本仓库）</th></tr></thead>
+    <tbody>
+      <tr><td>MCU</td><td>ESP32-S3（2 路 CAN：MCP2515 + TWAI）</td><td>ESP32-P4（3 路原生 TWAI）</td></tr>
+      <tr><td>同时在线总线</td><td>2 路，拓扑二选一</td><td><b>3 路：BODY + CHASSIS + PARTY</b></td></tr>
+      <tr><td>NAG killer</td><td>取决于拓扑</td><td>扭矩法与 TSL9 都可选</td></tr>
+      <tr><td>供电</td><td>12–24V 直供、光耦隔离</td><td>USB-C 5V（<b>需另配车载降压</b>）</td></tr>
+      <tr><td>成本</td><td>板 ~$24（成品工业板）</td><td>板 ~$14–25 + 3 个收发器模块</td></tr>
+      <tr><td>成熟度</td><td>较成熟</td><td><b>BETA</b>，BLE 部分作者自注 “need some fix”</td></tr>
+    </tbody>
+  </table>
+  <div class="note warn">
+    仓库标题直接写着 <b>BETA</b>。<code>VALIDATION.md</code> 明确记录：<b>未在真机烧录、未做 CAN 实测、未做整车/道路测试</b>。
+    作者自己的验证只到“主机测试 + 编译通过”。把它当“可以开始验证的固件”，不要当成已验收产品。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">2</span>技术栈</h2>
+  <table>
+    <thead><tr><th>层</th><th>实现</th></tr></thead>
+    <tbody>
+      <tr><td>MCU</td><td>ESP32-P4（post-v3 硅片），双核 RISC-V 400 MHz + LP 核；32 MB PSRAM（封装内）+ 32 MB Nor Flash</td></tr>
+      <tr><td>无线</td><td>ESP32-C6-MINI-1，通过 <b>SDIO + ESP-Hosted</b> 提供 Wi-Fi 6 / BLE 5（P4 本身无射频）</td></tr>
+      <tr><td>框架</td><td>Arduino-ESP32 <b>3.3.12</b>（底层 ESP-IDF 5.5.5），单 <code>.ino</code> + 大量头文件，无 PlatformIO 工程</td></tr>
+      <tr><td>CAN 驱动</td><td>ESP-IDF 原生 <code>driver/twai.h</code> 的 <code>_v2</code> API，三个独立 handle，500 kbit/s，accept-all 滤波</td></tr>
+      <tr><td>Web / UI</td><td>Arduino <code>WebServer</code> + 内嵌 gzip HTML：<code>dashboard_source.html</code> → <code>tools/build_dashboard.py</code> → <code>index_html.h</code></td></tr>
+      <tr><td>存储</td><td>NVS（<code>Preferences</code>）保存 profile、功能开关、S3XY 绑定；带 schema 迁移与“保留 BLE 数据”的重置守卫</td></tr>
+      <tr><td>BLE</td><td>NimBLE，绑定 + Secure Connections；内置 <b>TinyCrypt ECC 修复</b>（Espressif commit <code>9fd7cb7</code>），解决 <code>DHKey Check Failed (0x50b)</code></td></tr>
+      <tr><td>构建</td><td><code>arduino-cli</code> + FQBN；<code>build_opt.h</code> 追加 <code>-fno-exceptions</code></td></tr>
+      <tr><td>测试</td><td>主机侧 C++（g++/clang + ASan/UBSan）、Python <code>unittest</code>、Node 仪表盘 DOM 测试 —— 不依赖硬件</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">3</span>项目结构：按“纯逻辑 / 运行时 / 适配层”三层切分</h2>
+  <p>没有 <code>src/main.cpp</code> 那种常规布局，而是<b>扁平的单 sketch</b>。所有 <code>.h</code> 与 <code>.ino</code> 必须放在同一目录，目录名必须等于 <code>.ino</code> 文件名。</p>
+  <table>
+    <thead><tr><th>层</th><th>代表文件</th><th>职责</th></tr></thead>
+    <tbody>
+      <tr><td>启动编排</td><td class="mono">P4-CAN-Universal-v3.29.3.ino</td><td>NVS 初始化 → profile 校验 → 三路 CAN 安装 → Web → BLE 的任务启动顺序；无有效 profile 时进 <b>fail-closed</b> 只开 Wi-Fi/Web</td></tr>
+      <tr><td>纯逻辑<br><span style="color:#7a808a">（可主机测试）</span></td><td class="mono">r79_*_pure.h · mode_h_pure.h · auto_blinker_pure.h · tsl9_*_pure.h · continuous_ap_fsm_pure.h · ulc_compositor_pure.h · pedal_map_session_pure.h</td><td>策略、状态机、位域编解码。不带 Arduino 依赖，所以能在 PC 上直接编译跑测试</td></tr>
+      <tr><td>运行时</td><td class="mono">can_core.h · can_runtime.h · vehicle_logic.h · web_api.h · s3xy_ble.h</td><td>四个大块（各 60–260 KB）：CAN 收发自愈、车辆信号解码与注入、HTTP API、BLE 配对</td></tr>
+      <tr><td>硬件适配</td><td class="mono">p4_can.h · pin_config.h · p4_network.h · can_usb_logger*.h</td><td>三路 TWAI 的句柄/队列/恢复；引脚映射；Hosted C6 网络；USB 侧 CAN 抓包协议</td></tr>
+      <tr><td>车型映射</td><td class="mono">vehicle_profile.h</td><td>5 个 profile × 拓扑枚举；决定 A/B/extra 三个逻辑路由分别落到 BODY / CHASSIS / PARTY 哪根物理总线</td></tr>
+      <tr><td>C 依赖</td><td class="mono">src/p4_tinycrypt/*.c · third_party/tinycrypt/</td><td>覆盖 SDK 里有缺陷的 ECC 实现，厂商源码按字节保存并附 manifest</td></tr>
+      <tr><td>工具 / 测试</td><td class="mono">tools/*.py · tests/</td><td>仪表盘构建、编译发布、加密链校验；主机测试与 TWAI 桩</td></tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <b>设计上值得学的一点：</b><code>*_pure.h</code> 与 <code>*_runtime.h</code> 成对出现 —— 纯逻辑不带 <code>Arduino.h</code>，
+    所以 2000+ 行的 NAG/R79/TSL9 策略可以在 Mac 上用 g++ 直接跑回归，不必上板。这也是它能在没有硬件的情况下声称“验证过”的唯一依据。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">4</span>整体目标与功能清单</h2>
+  <p>目标一句话：<b>在不改写车机软件的前提下，通过总线注入把被区域/法规限制的智驾能力放开</b>。三路总线各自承担不同职责：</p>
+  <table>
+    <thead><tr><th>功能</th><th>主要总线</th><th>做什么</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>NAG killer</td><td>PARTY（扭矩法）/ CHASSIS（TSL9）</td><td>抑制“请握方向盘”提示</td><td>核心功能</td></tr>
+      <tr><td>Advanced EAP</td><td>BODY</td><td>NOA 请求变道时自动打转向灯，可配延迟、可取消</td><td>核心功能</td></tr>
+      <tr><td>EU Unlock / R79</td><td>BODY（0x3FD）</td><td>放开 ECE R79 限制、Summon 扩到 ±85 m、横向加速度上限</td><td>核心功能</td></tr>
+      <tr><td>TLSSC 激活</td><td>BODY</td><td>区域未开放时强行点亮交通灯/停车标志控制</td><td>核心功能</td></tr>
+      <tr><td>Continuous AP</td><td>BODY + CHASSIS</td><td>AP 被接管后自动重连</td><td>实验性</td></tr>
+      <tr><td>ISA 提示音抑制</td><td>—</td><td>关掉限速提示音</td><td>可用</td></tr>
+      <tr><td>Country / Map 区域伪装</td><td>—</td><td>改国家/地图区域标识</td><td>可用，合规风险最高的一项</td></tr>
+      <tr><td>Vision 限速 / 踏板映射</td><td>—</td><td>视觉限速与油门响应微调</td><td>可用</td></tr>
+      <tr><td>S3XY Button</td><td>BLE</td><td>蓝牙按键直连（最多 3 只）</td><td><b>作者自注 need some fix</b></td></tr>
+      <tr><td>CAN 抓包 / LAB</td><td>全部</td><td>Snapshot / RAW 导出，只读不回放</td><td>研究用</td></tr>
+    </tbody>
+  </table>
+  <div class="note warn">
+    README 开头写明“部分功能需要有效的 EAP/FSD 订阅”。这不是破解订阅，而是<b>改车辆本地策略位</b>；
+    订阅状态、账号区域、车辆固件版本都可能让某一项失效，且 Tesla 的 OTA 随时可能改掉帧定义。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">5</span>硬件：和 T2CAN 版的三个关键差异</h2>
+  <table>
+    <thead><tr><th>项</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><b>板子</b></td><td>Waveshare <b>ESP32-P4-WIFI6</b>（建议买 <b>-M 版</b>：排针已焊好；标准版排针需自焊）。SKU 32020 / 31647。板载 C6 已带 PCB 天线，<b>不需要外接天线</b></td></tr>
+      <tr><td><b>收发器</b></td><td><b>3 个 SN65HVD230</b> 模块（3.3V 逻辑，与 P4 电平匹配）。<b>别用 TJA1050 / 5V 模块</b>，会反灌 P4 的 IO</td></tr>
+      <tr><td><b>供电</b></td><td>最大差异：P4 板走 <b>USB-C 5V</b>，不像 T2CAN 能直吃 12V。必须配 <b>12V→5V/3A 车载降压</b>（点烟器车充或裸降压模块）+ 保险丝</td></tr>
+      <tr><td><b>接线量</b></td><td>T2CAN 只需引 2 对 CAN；这里要引 <b>3 对</b>（Party / Body / Chassis）+ 12V + GND，<b>1 分 3 线束从“可选”变成“必需”</b></td></tr>
+      <tr><td><b>终端电阻</b></td><td>3 个模块各有一颗 120 Ω，<b>上车前三个都要拆</b>（车上总线两端已有终端）；台架阶段每个总线留一颗</td></tr>
+      <tr><td><b>高速模式</b></td><td>SN65HVD230 的 <code>Rs</code> 脚决定斜率控制/高速，README 要求把模块切到 <b>high-speed</b>（Rs 接地）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>引脚映射（默认板型）</h3>
+  <table>
+    <thead><tr><th>物理总线</th><th>TWAI</th><th>P4 TX</th><th>P4 RX</th><th>车上取点（X179）</th></tr></thead>
+    <tbody>
+      <tr><td>CAN 1 · BODY</td><td>TWAI 0</td><td class="mono">GPIO20</td><td class="mono">GPIO21</td><td>BODY 对（13/14 或 9/10，按实测）</td></tr>
+      <tr><td>CAN 2 · CHASSIS</td><td>TWAI 1</td><td class="mono">GPIO22</td><td class="mono">GPIO23</td><td>CHASSIS 对（18/19）</td></tr>
+      <tr><td>CAN 3 · PARTY</td><td>TWAI 2</td><td class="mono">GPIO26</td><td class="mono">GPIO27</td><td>PARTY 对（2/3）</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:13px;color:#4a4f57">若用作者的 “ESP32P4 WIFI6 3CAN” 扩展板，编译时加 <code>-DP4CAN_BOARD_X179</code>，引脚改为 2/3、4/5、26/27（<code>pin_config.h</code> 里已写好映射，并注明板丝印的 CAN1/CAN2 与 X179 是反的）。</p>
+</section>
+
+<section>
+  <h2><span class="n">6</span>环境搭建（macOS，已核对本机）</h2>
+  <div class="grid">
+    <div class="stat"><div class="k">已具备</div><div class="v">python3 / node / clang</div><div class="d">Python 3.13.12、Node 22、Apple clang —— 足够跑主机测试</div></div>
+    <div class="stat"><div class="k">待安装</div><div class="v">arduino-cli + esp32 core</div><div class="d">本机当前两者都没有，这是唯一的前置</div></div>
+    <div class="stat"><div class="k">首次下载</div><div class="v">约 1–1.5 GB</div><div class="d">esp32 core 3.3.12 + RISC-V 工具链</div></div>
+  </div>
+
+<pre><span class="c"># 1. 装 arduino-cli</span>
+brew install arduino-cli
+
+<span class="c"># 2. 加 Espressif 板卡索引</span>
+arduino-cli config init
+arduino-cli config add board_manager.additional_urls \
+  https://espressif.github.io/arduino-esp32/package_esp32_index.json
+arduino-cli core update-index
+
+<span class="c"># 3. 锁死 3.3.12（固件就是按这个版本验证的，别用 latest）</span>
+arduino-cli core install esp32:esp32@3.3.12
+
+<span class="c"># 4. 确认 P4 目标存在</span>
+arduino-cli board listall | grep -i esp32p4
+arduino-cli core list</pre>
+  <div class="note">
+    core 版本必须对齐：<code>VALIDATION.md</code> 记录的编译目标是 <b>Arduino-ESP32 3.3.12 / ESP-IDF 5.5.5</b>。
+    用更新的 core 可能因为 <code>twai_*_v2</code> API 或 TinyCrypt 覆盖逻辑变动而编不过。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">7</span>编译与烧录</h2>
+
+  <h3>第一步：目录改名（否则 Arduino 根本认不出 sketch）</h3>
+<pre>git clone https://github.com/06066060606060/P4can-universal-unlock.git
+mv P4can-universal-unlock <span class="g">P4-CAN-Universal-v3.29.3</span>
+<span class="c"># 目录名必须 == .ino 文件名（去掉扩展名），这是 Arduino 的硬规则</span></pre>
+
+  <h3>第二步：编译</h3>
+<pre>FQBN="esp32:esp32:esp32p4:ChipVariant=postv3,FlashSize=32M,PartitionScheme=app5M_fat24M_32MB,PSRAM=enabled,USBMode=hwcdc,CDCOnBoot=cdc,FlashMode=qio"
+
+arduino-cli compile --fqbn "$FQBN" --warnings default P4-CAN-Universal-v3.29.3</pre>
+
+  <h3>第三步：烧录</h3>
+<pre>arduino-cli board list          <span class="c"># 找串口，通常是 /dev/cu.usbserial-* 或 /dev/cu.wchusbserial*</span>
+arduino-cli upload -p /dev/cu.usbserial-XXXX --fqbn "$FQBN" P4-CAN-Universal-v3.29.3</pre>
+
+  <div class="note warn">
+    <b>坑 1：官方的 python 构建脚本跑不了。</b><code>tools/build_p4.py</code> 会去仓库<b>外部</b>找 <code>../tools/build_ota.py</code>
+    （属于作者的私有工作区，没随仓库发布），找不到就直接 <code>SystemExit</code>。<b>别在这条路上耗时间，直接用上面的 arduino-cli 命令。</b>
+  </div>
+  <div class="note warn">
+    <b>坑 2：tinycrypt 头文件路径。</b><code>src/p4_tinycrypt/*.c</code> 里写的是 <code>#include &lt;tinycrypt/ecc.h&gt;</code>，
+    而头文件在 <code>third_party/tinycrypt/include/tinycrypt/</code>，<code>build_opt.h</code> 里没有对应的 <code>-I</code>。
+    若编译报 <code>fatal error: tinycrypt/ecc.h: No such file or directory</code>，二选一修：
+    <br>① 把 <code>third_party/tinycrypt/include/tinycrypt/</code> 整个复制到 <code>src/tinycrypt/</code>；
+    <br>② 或加编译参数 <code>--build-property "compiler.c.extra_flags=-I$PWD/third_party/tinycrypt/include"</code>（cpp 同理再加一条）。
+  </div>
+  <div class="note warn">
+    <b>坑 3：串口日志看哪个口。</b>这块板的 Type-C 后面是 <b>CH343P USB-UART</b>；而固件要求
+    <code>USB Mode = Hardware CDC and JTAG</code> + <code>CDC on boot</code>，说明 <code>Serial</code> 走的是 <b>P4 原生 USB</b>（板上 4-pin MX1.25 口）。
+    所以：<b>烧录走 Type-C 没问题，但要看启动日志/走 USB 抓包协议，得接那个 4-pin 转 USB 线</b>（KIT-A/B 附带）。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">8</span>首次开机配置</h2>
+  <ol class="steps">
+    <li><b>上电，连热点</b>SSID 为 <code>P4-CAN-XXXX</code>（取 MAC 末两字节），默认密码 <code>12345678</code>，仪表盘 <code>http://192.168.4.1</code>。</li>
+    <li><b>选车型 profile</b>2024 款 Model Y → <code>Model Y Legacy</code>；拓扑 <code>Triple Standard</code>（A=BODY、B=CHASSIS、extra=PARTY）。</li>
+    <li><b>理解 fail-closed</b>没有有效 profile 时，固件只启 Wi-Fi/Web：<b>不发一帧 CAN、不开 BLE、不启注入</b>。所以“灯亮但车没反应”先回去看 profile 有没有存上。</li>
+    <li><b>看三路是否真在收</b>Diagnostics / Recovery 页会给每路独立显示 init error、RX 调用数、队列、TEC/REC。三路都必须有 RX 才算接线对。</li>
+    <li><b>再开功能</b>Settings 里逐项开（Advanced EAP → NAG → EU Unlock → TLSSC），每开一项跑一次验证，别一次全开。</li>
+  </ol>
+  <div class="note ok">
+    <b>比 T2CAN 版省事的地方：</b>因为三路同时在线，<code>vehicleProfileNagTorqueSupported()</code> 对所有有效拓扑都返回 true —— 不再需要为了 NAG 去牺牲 Advanced EAP。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">9</span>先跑主机测试（不接硬件就能验）</h2>
+  <p>我在本机实跑的结果，可作为你的基线：</p>
+  <table>
+    <thead><tr><th>测试</th><th>命令</th><th>本机结果</th></tr></thead>
+    <tbody>
+      <tr><td>P4 适配层（5 profile / 引脚 / 三路 RX）</td><td class="mono">clang++ -std=c++17 -Itests/fakes -I. tests/test_p4.cpp</td><td>✅ PASS</td></tr>
+      <tr><td>Hosted 网络与 AP 时序</td><td class="mono">clang++ -std=c++17 -I. tests/test_network.cpp</td><td>✅ PASS</td></tr>
+      <tr><td>仪表盘 DOM 逻辑</td><td class="mono">node tests/test_dashboard.js</td><td>✅ PASS</td></tr>
+      <tr><td>加密链 / 生命周期</td><td class="mono">python3 tests/test_p4_crypto_link.py</td><td>✅ PASS</td></tr>
+      <tr><td>仪表盘静态检查</td><td class="mono">python3 tests/test_dashboard.py</td><td>❌ 见下</td></tr>
+      <tr><td>S3XY 安全主机测试</td><td class="mono">python3 tests/test_s3xy_security_host.py</td><td>❌ 见下</td></tr>
+    </tbody>
+  </table>
+  <div class="note warn">
+    <b>两条红旗是仓库自己的遗留，不是你的环境问题：</b>
+    <br>① <code>test_dashboard.py</code> 断言“全仓库不得出现 <code>t2can</code> 字样”，但 <code>README.md</code> 里就写着 “All the features of the T2CAN-Universal unlock…” → 必挂。
+    <br>② <code>test_s3xy_security_host.py</code> 有一条基线哈希/版本身份断言随 v3.29.1→v3.29.3 更新失效（且它靠目录名推导版本号）。
+    <br>结论：这两条可以忽略；真正重要的是前四条——<b>编译前先跑通它们，能挡掉 80% 的“换了 core 就编不过”问题。</b>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">10</span>排错顺序</h2>
+  <table>
+    <thead><tr><th>现象</th><th>先查什么</th></tr></thead>
+    <tbody>
+      <tr><td>编译报 <code>requires ESP32-P4 with three TWAI controllers</code></td><td>FQBN 里 <code>ChipVariant</code> 漏了，或选了别的芯片</td></tr>
+      <tr><td>编译报 <code>ARDUINO_USB_MODE</code> / <code>CDC_ON_BOOT</code> 断言</td><td>FQBN 必须含 <code>USBMode=hwcdc,CDCOnBoot=cdc</code></td></tr>
+      <tr><td>烧录成功但热点搜不到</td><td>C6 的 Hosted 固件版本不匹配；看 Type-C 串口有没有 <code>HOSTED_PINS_FAILED</code></td></tr>
+      <tr><td>三路里某一路 RX 恒为 0</td><td>该对针脚接错总线 / 收发器 CANH-CANL 反了 / 模块 Rs 没切高速</td></tr>
+      <tr><td>一路反复 bus-off</td><td>该模块的 120 Ω 没拆</td></tr>
+      <tr><td>能连 Wi-Fi 但页面空白</td><td><code>index_html.h</code> 与 <code>dashboard_source.html</code> 不同步；跑 <code>tools/build_dashboard.py</code> 重新生成</td></tr>
+      <tr><td>BLE 配对失败 <code>e=1291</code></td><td>正是 v3.29.3 修的那个 TinyCrypt ECC 缺陷；确认 <code>src/p4_tinycrypt</code> 真的被编译进去了</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">11</span>边界与风险</h2>
+  <ul>
+    <li><b>没有整车验证。</b>作者明确记录未烧录、未接 CAN、未路测。三路总线同时注入的时序风险，只能由你在台架上自己论证。</li>
+    <li><b>OTA 会让它失效。</b>Tesla 改帧定义或加校验是常态，这类项目历史上都是“能用一段时间，然后某次 OTA 就废了”。</li>
+    <li><b>合规。</b>改国家/地图区域的 <code>Country Override</code>、绕过 ECE R79 的限制，在多数地区属于非法改装；国内可能被认定擅自改变车辆技术参数，并影响质保与理赔。</li>
+    <li><b>安全。</b>NAG killer 抑制的是驾驶员注意力监控，配合脱手使用会显著提高事故概率。仓库自己写明“仅限受控台架与研究环境”。</li>
+    <li><b>供电。</b>P4 板经 USB-C 5V 供电，车载降压模块的纹波与浪涌比 T2CAN 的隔离 12V 输入脆弱得多，建议加 TVS + 保险丝，并在熄火后断电路径上做验证，避免静态亏电。</li>
+  </ul>
+</section>
+
+<footer>
+  依据 <code>github.com/06066060606060/P4can-universal-unlock</code> main 分支（v3.29.3 BETA）源码、README、VALIDATION、CHANGELOG 与 <code>pin_config.h</code> / <code>p4_can.h</code> / <code>vehicle_profile.h</code> 通读整理<br>
+  主机测试结果为 2026-11-11 在 macOS（Apple clang / Python 3.13 / Node 22）实测
+</footer>
+
+</div>
+</body>
+</html>

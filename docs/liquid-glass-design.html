@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P4-CAN iOS · 液态玻璃设计稿</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --card:#fff; --ink:#1b1b19; --sub:#6b6b66; --line:#e2e0da;
+    --accent:#1f6f4a; --code:#f0efea;
+    --teal:#4ad8c2; --teal-d:#187f74; --sky:#4368d8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"SF Pro Text","Helvetica Neue","PingFang SC","Hiragino Sans GB",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:44px 24px 72px;
+  }
+  .wrap{max-width:1120px;margin:0 auto}
+  h1{font-size:27px;font-weight:700;letter-spacing:-.4px}
+  .lead{color:var(--sub);font-size:14.5px;line-height:1.7;margin-top:10px;max-width:720px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{
+    font-size:12px;padding:5px 11px;border-radius:999px;
+    background:#fff;border:1px solid var(--line);color:var(--sub);
+  }
+  .chip b{color:var(--accent);font-weight:600}
+
+  h2{font-size:16px;font-weight:650;margin:44px 0 14px;display:flex;align-items:center;gap:9px}
+  h2::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--accent)}
+  h2 span{font-weight:400;font-size:12.5px;color:var(--sub)}
+
+  .stage{
+    display:flex;gap:44px;flex-wrap:wrap;justify-content:center;
+    padding:40px 18px 44px;
+    border-radius:26px;
+    background:
+      radial-gradient(700px 420px at 18% 0%, #e9efe9, transparent 70%),
+      radial-gradient(600px 400px at 88% 100%, #e7eaf3, transparent 72%),
+      #fbfaf8;
+    border:1px solid var(--line);
+  }
+  .device{width:393px;flex:0 0 auto}
+  .caption{
+    text-align:center;font-size:12.5px;color:var(--sub);margin-top:16px;line-height:1.6;
+  }
+  .caption b{color:var(--ink);font-weight:600}
+
+  /* ---------- 手机外框 ---------- */
+  .phone{
+    position:relative;width:393px;height:852px;
+    border-radius:56px;overflow:hidden;
+    background:#05070b;
+    box-shadow:
+      0 0 0 11px #1c1d1f, 0 0 0 12.5px #3a3b3d,
+      0 34px 70px -18px rgba(15,20,25,.55), 0 8px 24px rgba(0,0,0,.18);
+  }
+  .screen{position:absolute;inset:0;overflow:hidden;isolation:isolate}
+
+  /* 背景：纯色 + 磨砂颗粒（没有彩色光晕、没有渐变亮带） */
+  .backdrop{position:absolute;inset:0;background:#0b0d11}
+  .backdrop::before{
+    content:"";position:absolute;inset:0;opacity:.34;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    background-size:120px 120px;
+  }
+  .backdrop::after{content:"";position:absolute;inset:0}
+  .base{position:absolute;inset:0;background:#0b0d11}
+
+  /* 状态栏 */
+  .statusbar{
+    position:absolute;top:0;left:0;right:0;height:54px;z-index:30;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 30px 0;color:#fff;font-size:14.5px;font-weight:600;letter-spacing:.2px;
+  }
+  .statusbar .r{display:flex;gap:6px;align-items:center;opacity:.95}
+  .island{
+    position:absolute;top:11px;left:50%;transform:translateX(-50%);
+    width:118px;height:33px;border-radius:20px;background:#000;z-index:31;
+  }
+
+  /* ---------- 玻璃（仅控制层） ---------- */
+  .glass{
+    background:linear-gradient(158deg, rgba(255,255,255,.15), rgba(255,255,255,.055));
+    -webkit-backdrop-filter:blur(26px) saturate(185%);
+    backdrop-filter:blur(26px) saturate(185%);
+    border:.5px solid rgba(255,255,255,.24);
+    box-shadow:0 10px 34px rgba(0,0,0,.42), inset 0 .8px 0 rgba(255,255,255,.30),
+               inset 0 -1px 0 rgba(255,255,255,.06);
+    position:relative;
+  }
+  .glass::after{  /* 顶部镜面高光 */
+    content:"";position:absolute;left:12%;right:12%;top:0;height:1px;border-radius:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  }
+  .glass-prom{  /* 主操作：与图标钮同一材质，只叠一层很淡的品牌色 tint */
+    background:linear-gradient(158deg, rgba(74,216,194,.22), rgba(74,216,194,.09));
+    -webkit-backdrop-filter:blur(26px) saturate(170%);
+    backdrop-filter:blur(26px) saturate(170%);
+    border:.5px solid rgba(255,255,255,.24);
+    box-shadow:0 10px 30px rgba(0,0,0,.42), inset 0 .8px 0 rgba(255,255,255,.32),
+               inset 0 -1px 0 rgba(255,255,255,.06);
+  }
+  .glass-prom::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent)}
+
+  /* ---------- 内容（材质层） ---------- */
+  .body-layer{
+    position:absolute;inset:0;z-index:10;
+    padding:96px 20px 0;overflow:hidden;
+  }
+  .brand-tile{
+    width:60px;height:60px;border-radius:20px;
+    background:linear-gradient(145deg,#4ad8c2,#187f74);
+    box-shadow:0 14px 30px rgba(24,127,116,.45);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .h-title{font-size:31px;line-height:1.16;font-weight:700;color:#fff;letter-spacing:-.6px;margin-top:12px}
+  .h-sub{font-size:14.5px;color:rgba(235,242,250,.62);margin-top:5px}
+
+  .card{
+    border-radius:24px;padding:18px;
+    background:rgba(28,34,42,.62);
+    -webkit-backdrop-filter:blur(18px) saturate(140%);
+    backdrop-filter:blur(18px) saturate(140%);
+    border:.5px solid rgba(255,255,255,.075);
+    box-shadow:0 18px 40px -12px rgba(0,0,0,.45);
+  }
+  .sec-title{
+    font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;
+    color:rgba(235,242,250,.50);margin:13px 0 8px;padding-left:6px;
+  }
+  .row{display:flex;gap:13px;align-items:flex-start}
+  .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:0 0 auto;
+       box-shadow:0 0 14px 3px rgba(255,190,80,.55)}
+  .dot.warn{background:#ffbe50}
+  .t-strong{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.2px}
+  .t-body{font-size:14.5px;color:rgba(235,242,250,.66);margin-top:3px;line-height:1.4}
+  .spinner{
+    width:18px;height:18px;border-radius:50%;margin:4px 0 0 auto;
+    border:2px solid rgba(74,216,194,.25);border-top-color:#4ad8c2;
+  }
+
+  .steps{padding:0}
+  .step{display:flex;gap:13px;padding:7px 18px;align-items:flex-start}
+  .step + .step{border-top:.5px solid rgba(255,255,255,.07)}
+  .num{
+    width:24px;height:24px;flex:0 0 auto;border-radius:50%;
+    background:rgba(74,216,194,.14);border:.8px solid rgba(74,216,194,.30);
+    color:#4ad8c2;font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .step-t{font-size:15.5px;font-weight:500;color:#fff;line-height:1.32}
+  .step-d{font-size:13px;color:rgba(235,242,250,.52);margin-top:3px}
+  .step-d.mono{color:#4ad8c2;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:600}
+
+  .field{
+    height:44px;border-radius:14px;display:flex;align-items:center;
+    padding:0 14px;font-size:16px;color:#fff;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:rgba(8,10,14,.45);border:.8px solid rgba(255,255,255,.12);
+  }
+  .cap{
+    height:44px;padding:0 18px;border-radius:22px;display:flex;align-items:center;
+    font-size:15px;font-weight:600;color:#4ad8c2;
+    background:rgba(74,216,194,.10);border:.8px solid rgba(74,216,194,.34);
+  }
+  .hint{font-size:12.5px;color:rgba(235,242,250,.50);line-height:1.45;margin-top:12px}
+  .link{font-size:13px;font-weight:500;color:#4ad8c2}
+  .addr-row{display:flex;gap:10px}
+  .addr-foot{display:flex;gap:10px;align-items:center;margin-top:12px}
+  .addr-foot .hint{margin:0;flex:1}
+
+  .help-row{display:flex;align-items:center;gap:10px;height:42px;color:#fff;font-size:16px;font-weight:500}
+  .help-row .chev{margin-left:auto;opacity:.5}
+
+  .footer{font-size:11.5px;color:rgba(235,242,250,.34);line-height:1.6;margin-top:17px;padding-bottom:8px}
+
+  /* 顶部 / 底部控制层 */
+  .ctrl-top{position:absolute;top:62px;right:20px;z-index:40}
+  .icon-btn{
+    width:46px;height:46px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;color:#fff;
+  }
+  .ctrl-bottom{
+    position:absolute;left:20px;right:20px;bottom:44px;z-index:40;
+    display:flex;gap:12px;
+  }
+  .btn-primary{
+    flex:1;height:46px;border-radius:23px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    font-size:15px;font-weight:600;color:#f2f7f6;letter-spacing:-.2px;
+  }
+  .btn-primary svg{stroke:#4ad8c2}
+  .btn-primary svg circle{fill:#4ad8c2}
+  .btn-icon{width:46px;height:46px;border-radius:23px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;color:#fff}
+
+  /* ---------- 第二台：在线仪表盘 ---------- */
+  .dashboard{padding:112px 16px 0}
+  .db-title{font-size:26px;font-weight:700;color:#fff;letter-spacing:-.4px}
+  .db-sub{font-size:13px;color:rgba(235,242,250,.55);margin-top:4px}
+  .bus-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:18px}
+  .bus{
+    border-radius:18px;padding:12px 11px;
+    background:rgba(28,34,42,.66);border:.5px solid rgba(255,255,255,.07);
+  }
+  .bus .n{font-size:11px;letter-spacing:.5px;color:rgba(235,242,250,.48);font-weight:600}
+  .bus .s{font-size:15px;font-weight:650;color:#4ad8c2;margin-top:5px;display:flex;align-items:center;gap:5px}
+  .bus .s i{width:5px;height:5px;border-radius:50%;background:#4ad8c2;display:block}
+  .db-card{margin-top:12px;border-radius:20px;padding:14px 16px;
+    background:rgba(28,34,42,.66);border:.5px solid rgba(255,255,255,.07)}
+  .db-line{display:flex;align-items:center;justify-content:space-between;padding:11px 0;font-size:15px;color:#fff}
+  .db-line + .db-line{border-top:.5px solid rgba(255,255,255,.06)}
+  .db-line small{display:block;font-size:12px;color:rgba(235,242,250,.45);margin-top:2px;font-weight:400}
+  .sw{width:46px;height:28px;border-radius:14px;background:rgba(74,216,194,.85);position:relative;flex:0 0 auto}
+  .sw::after{content:"";position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#fff}
+  .sw.off{background:rgba(255,255,255,.14)}
+  .sw.off::after{right:auto;left:3px;background:rgba(255,255,255,.7)}
+  .ctrl-bottom.right{justify-content:flex-end}
+  .loading-chip{
+    display:flex;align-items:center;gap:9px;padding:0 16px;height:46px;border-radius:23px;
+    color:#fff;font-size:14px;font-weight:500;
+  }
+
+  /* ---------- 规范说明 ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:14px;margin-top:6px}
+  .note{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 18px}
+  .note h3{font-size:13.5px;font-weight:650;display:flex;align-items:center;gap:7px}
+  .note h3 em{
+    font-style:normal;font-size:10.5px;font-weight:600;color:var(--accent);
+    background:#eaf3ee;border-radius:5px;padding:2px 6px;letter-spacing:.2px;
+  }
+  .note p{font-size:13px;color:var(--sub);line-height:1.75;margin-top:8px}
+  .note code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+    background:var(--code);border-radius:4px;padding:1px 5px;color:#3d3d38;
+  }
+  .swatches{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap}
+  .sw-item{flex:1;min-width:64px}
+  .sw-item i{display:block;height:38px;border-radius:10px;border:1px solid rgba(0,0,0,.06)}
+  .sw-item span{display:block;font-size:10.5px;color:var(--sub);margin-top:6px;text-align:center;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  .foot{margin-top:42px;padding-top:18px;border-top:1px solid var(--line);
+    font-size:12px;color:var(--sub);line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>P4-CAN iOS · 液态玻璃设计稿</h1>
+  <p class="lead">
+    按 iOS 26 起的 Liquid Glass 体系重做原生外壳的三个界面。核心约束来自官方 HIG：
+    <b>玻璃只属于控制层</b>（浮动按钮、操作条、Banner），内容层一律用标准材质与实色卡片。
+    这里有真实的 <code style="font-family:ui-monospace,Menlo,monospace;background:#f0efea;padding:1px 5px;border-radius:4px">backdrop-filter</code>
+    折射效果——SwiftUI 的 <code style="font-family:ui-monospace,Menlo,monospace;background:#f0efea;padding:1px 5px;border-radius:4px">glassEffect</code>
+    由系统在设备上实时合成，截图与离屏渲染都取不到。
+  </p>
+
+  <div class="chips">
+    <span class="chip">部署目标 <b>iOS 16+</b>（26 以下自动回退材质）</span>
+    <span class="chip">设计基准 <b>393 × 852</b></span>
+    <span class="chip">栅格 <b>8pt</b> · 屏幕边距 20</span>
+    <span class="chip">圆角 <b>32 / 24 / 16 / 14</b> 同心</span>
+    <span class="chip">触控区 <b>≥ 44pt</b></span>
+  </div>
+
+  <h2>界面一：连接引导页 <span>设备离线时显示</span></h2>
+
+  <div class="stage">
+    <div class="device">
+      <div class="phone">
+        <div class="screen">
+          <div class="base"></div>
+          <div class="backdrop"></div>
+          <div class="island"></div>
+
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="r">
+              <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.7" y="5" width="3" height="6" rx="1"/><rect x="9.4" y="2.6" width="3" height="8.4" rx="1"/><rect x="14.1" y="0" width="3" height="11" rx="1"/></svg>
+              <svg width="16" height="11" viewBox="0 0 16 12" fill="#fff"><path d="M8 11.2 5.6 8.6a3.4 3.4 0 0 1 4.8 0L8 11.2Zm0-5.1a6.6 6.6 0 0 0-4.7 1.9L1.9 6.4a8.6 8.6 0 0 1 12.2 0l-1.4 1.6A6.6 6.6 0 0 0 8 6.1Z"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.4" stroke="#fff" stroke-opacity=".42"/><rect x="2.2" y="2.2" width="16.4" height="7.6" rx="2" fill="#fff"/><path d="M23.2 4.2v3.6a2 2 0 0 0 0-3.6Z" fill="#fff" fill-opacity=".5"/></svg>
+            </span>
+          </div>
+
+          <div class="body-layer">
+            <div class="brand-tile">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#04211d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12h4l2.5-6 4 12L16 12h5"/>
+              </svg>
+            </div>
+            <div class="h-title">P4-CAN 控制器</div>
+            <div class="h-sub">Universal Unlock · 车载仪表盘</div>
+
+            <div class="card" style="margin-top:17px;padding:15px 18px">
+              <div class="row">
+                <span class="dot warn"></span>
+                <div>
+                  <div class="t-strong">正在查找设备</div>
+                  <div class="t-body">正在探测 192.168.4.1</div>
+                </div>
+                <span class="spinner"></span>
+              </div>
+            </div>
+
+            <div class="sec-title">连接步骤</div>
+            <div class="card steps">
+              <div class="step">
+                <span class="num">1</span>
+                <div>
+                  <div class="step-t">打开「设置」→「无线局域网」</div>
+                  <div class="step-d">Open Settings → Wi-Fi</div>
+                </div>
+              </div>
+              <div class="step">
+                <span class="num">2</span>
+                <div>
+                  <div class="step-t">选择热点 P4-CAN-XXXX</div>
+                  <div class="step-d mono">密码 12345678</div>
+                </div>
+              </div>
+              <div class="step">
+                <span class="num">3</span>
+                <div>
+                  <div class="step-t">回到本 App，自动进入仪表盘</div>
+                  <div class="step-d">无需手动输入地址</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sec-title">设备地址</div>
+            <div class="card" style="padding:14px 18px">
+              <div class="addr-row">
+                <div class="field" style="flex:1">192.168.4.1</div>
+                <div class="cap">连接</div>
+              </div>
+              <div class="addr-foot">
+                <div class="hint">默认 192.168.4.1；接路由器后改成局域网 IP。</div>
+                <div class="link">恢复默认</div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:9px;padding:0 18px">
+              <div class="help-row">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-opacity=".8">
+                  <circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.5"/><circle cx="12" cy="17.2" r=".9" fill="#fff" stroke="none"/>
+                </svg>
+                一直连不上？
+                <span class="chev">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg>
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 控制层：玻璃 -->
+          <div class="ctrl-top">
+            <div class="icon-btn glass">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round">
+                <path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h9M17 17h3"/>
+                <circle cx="15" cy="7" r="2.1"/><circle cx="9" cy="12" r="2.1"/><circle cx="15" cy="17" r="2.1"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="ctrl-bottom">
+            <div class="btn-primary glass-prom">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4ad8c2" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.5 8.6a15 15 0 0 1 19 0M6 12.4a10 10 0 0 1 12 0M9.4 16.2a5 5 0 0 1 5.2 0"/><circle cx="12" cy="19.6" r="1.3" fill="#4ad8c2" stroke="none"/>
+              </svg>
+              打开无线局域网设置
+            </div>
+            <div class="btn-icon glass">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.4 12a8.4 8.4 0 1 1-2.5-6"/><path d="M20.6 4.4V9h-4.6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="caption"><b>连接引导页</b><br>内容层用材质卡片，玻璃只出现在右上设置键与底部操作条</p>
+    </div>
+
+    <div class="device">
+      <div class="phone">
+        <div class="screen">
+          <div class="base"></div>
+          <div class="backdrop"></div>
+          <div class="island"></div>
+
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="r">
+              <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.7" y="5" width="3" height="6" rx="1"/><rect x="9.4" y="2.6" width="3" height="8.4" rx="1"/><rect x="14.1" y="0" width="3" height="11" rx="1"/></svg>
+              <svg width="16" height="11" viewBox="0 0 16 12" fill="#fff"><path d="M8 11.2 5.6 8.6a3.4 3.4 0 0 1 4.8 0L8 11.2Zm0-5.1a6.6 6.6 0 0 0-4.7 1.9L1.9 6.4a8.6 8.6 0 0 1 12.2 0l-1.4 1.6A6.6 6.6 0 0 0 8 6.1Z"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.4" stroke="#fff" stroke-opacity=".42"/><rect x="2.2" y="2.2" width="16.4" height="7.6" rx="2" fill="#fff"/><path d="M23.2 4.2v3.6a2 2 0 0 0 0-3.6Z" fill="#fff" fill-opacity=".5"/></svg>
+            </span>
+          </div>
+
+          <div class="dashboard" style="position:absolute;inset:0;padding:112px 16px 0">
+            <div class="db-title">P4-CAN 控制器</div>
+            <div class="db-sub">192.168.4.1 · Universal Unlock v3.29.3</div>
+
+            <div class="bus-grid">
+              <div class="bus"><div class="n">BODY</div><div class="s"><i></i>运行</div></div>
+              <div class="bus"><div class="n">CHASSIS</div><div class="s"><i></i>运行</div></div>
+              <div class="bus"><div class="n">PARTY</div><div class="s" style="color:#ffbe50"><i style="background:#ffbe50"></i>待机</div></div>
+            </div>
+
+            <div class="db-card">
+              <div class="db-line" style="padding-top:4px">
+                <div>防脱手提示<small>Nag Killer</small></div>
+                <span class="sw"></span>
+              </div>
+              <div class="db-line">
+                <div>免确认变道<small>Confirm-Free Lane Change</small></div>
+                <span class="sw"></span>
+              </div>
+              <div class="db-line" style="padding-bottom:4px">
+                <div>红绿灯识别<small>Traffic Light Stop Control</small></div>
+                <span class="sw off"></span>
+              </div>
+            </div>
+
+            <div class="db-card">
+              <div class="db-line" style="padding-top:4px">
+                <div>整车状态<small>12.4 V · 驻车 P 挡</small></div>
+                <span style="font-size:13px;color:#4ad8c2;font-weight:600">正常</span>
+              </div>
+            </div>
+
+            <div class="db-card">
+              <div class="db-line" style="padding-top:4px;border:none">
+                <div>总线负载<small>BODY 21% · CHASSIS 34% · PARTY 8%</small></div>
+                <span style="font-size:13px;color:rgba(235,242,250,.55);font-weight:500">3 路在线</span>
+              </div>
+            </div>
+
+            <div class="bus-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:12px">
+              <div class="bus"><div class="n">帧 / 秒</div><div class="s" style="color:#fff">1 842</div></div>
+              <div class="bus"><div class="n">错误帧</div><div class="s" style="color:#fff">0</div></div>
+              <div class="bus"><div class="n">运行时长</div><div class="s" style="color:#fff">02:14</div></div>
+            </div>
+          </div>
+
+          <div class="ctrl-bottom right">
+            <div class="loading-chip glass">
+              <span class="spinner" style="margin:0;width:15px;height:15px;border-width:1.8px"></span>
+              加载中
+            </div>
+            <div class="btn-icon glass">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.4 12a8.4 8.4 0 1 1-2.5-6"/><path d="M20.6 4.4V9h-4.6"/>
+              </svg>
+            </div>
+            <div class="btn-icon glass">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round">
+                <path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h9M17 17h3"/>
+                <circle cx="15" cy="7" r="2.1"/><circle cx="9" cy="12" r="2.1"/><circle cx="15" cy="17" r="2.1"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="caption"><b>在线仪表盘</b><br>网页占满内容层，玻璃控件浮在右下角，随滚动内容明暗变化</p>
+    </div>
+  </div>
+
+  <h2>设计规则的落地方式 <span>为什么这样分层</span></h2>
+
+  <div class="grid">
+    <div class="note">
+      <h3>玻璃只在控制层 <em>HIG</em></h3>
+      <p>浮动按钮、底部操作条、失败横幅用 <code>glassEffect</code>；卡片、列表、表单用
+      <code>.regularMaterial</code> 与实色。玻璃铺满内容区会打散层级，也是官方明确不推荐的做法。</p>
+    </div>
+    <div class="note">
+      <h3>同容器合并渲染 <em>GlassEffectContainer</em></h3>
+      <p>底部两个按钮放进同一个 <code>GlassEffectContainer(spacing: 12)</code>，系统才会把它们当作一组玻璃处理，
+      靠近时能自然融合，而不是两块独立磨砂。</p>
+    </div>
+    <div class="note">
+      <h3>纯色磨砂底 <em>Backdrop</em></h3>
+      <p>底色是<b>单一纯色</b>（深 #0B0D11 / 浅 #F4F6F9），只叠一层极细颗粒做磨砂质感，
+      没有彩色光晕、没有渐变亮带。纯色上没有内容可折射，玻璃靠自身<b>顶亮下暗的边缘高光</b>
+      被辨识——这是 iOS 26 玻璃在纯色背景下的真实表现，也避免彩色底抢走信息层级。</p>
+    </div>
+    <div class="note">
+      <h3>同心圆角 <em>Concentric</em></h3>
+      <p>sheet 32 → 卡片 24 → 内层控件 16 → 输入框 14，逐层递减 8 左右，
+      嵌套时圆角在视觉上保持平行，不会出现「外圆内方」的错位感。</p>
+    </div>
+    <div class="note">
+      <h3>对比度与明暗适配 <em>Accessibility</em></h3>
+      <p>深色下主文字纯白，次要文字最低到 62% 白（约 7:1），说明文字 50%（约 4.6:1）；浅色下对应压到 60% 与 45% 黑。
+      玻璃上的图标用主色而不是 <code>.secondary</code>，避免在亮衬底上糊掉。</p>
+    </div>
+    <div class="note">
+      <h3>动态字体 <em>Dynamic Type</em></h3>
+      <p>全部改用 <code>.largeTitle</code> <code>.body</code> <code>.footnote</code> 语义字号，不用固定 pt；
+      多行文本加 <code>fixedSize(vertical:)</code> 防截断，按钮加 <code>minimumScaleFactor</code>。</p>
+    </div>
+  </div>
+
+  <h2>色板 <span>与固件仪表盘同源</span></h2>
+  <div class="note">
+    <div class="swatches">
+      <div class="sw-item"><i style="background:#4ad8c2"></i><span>accent</span></div>
+      <div class="sw-item"><i style="background:#187f74"></i><span>accentDeep</span></div>
+      <div class="sw-item"><i style="background:#4368d8"></i><span>sky</span></div>
+      <div class="sw-item"><i style="background:#ffbe50"></i><span>warn</span></div>
+      <div class="sw-item"><i style="background:#ff7670"></i><span>danger</span></div>
+      <div class="sw-item"><i style="background:#0b0d11"></i><span>base</span></div>
+    </div>
+  </div>
+
+  <p class="foot">
+    说明：本页是设计稿，用浏览器的 <code style="font-family:ui-monospace,Menlo,monospace">backdrop-filter</code>
+    模拟系统的玻璃合成，用于在无法截图的环境里审阅版式与层次；App 内真实效果由 iOS 26+ 的
+    <code style="font-family:ui-monospace,Menlo,monospace">glassEffect</code> 在设备上实时渲染，会带轻微的透镜畸变与随设备倾斜的高光。
+    iOS 16–25 上自动回退为 <code style="font-family:ui-monospace,Menlo,monospace">ultraThinMaterial</code>，版式不变。
+  </p>
+</div>
+</body>
+</html>

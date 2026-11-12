@@ -1,0 +1,22 @@
+# 忽略构建产物与本机文件
+
+# Xcode / 构建
+.build/
+DerivedData/
+build/
+*.xcuserdatad/
+xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# 本地重新生成的产物
+ios/MacPreview/P4CANPreview.app/
+ios/图标/AppIcon.iconset/
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 编译出来的可执行文件（脚本会重新生成）
+ios/MacPreview/P4CANPreview
+ios/Preview/render
+ios/Preview/out/

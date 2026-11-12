@@ -1,0 +1,186 @@
+# P4-CAN 中英双语汉化 + iOS 外壳 App
+
+给 ESP32-P4 车载 CAN 控制器 **[P4can-universal-unlock](https://github.com/06066060606060/P4can-universal-unlock)**
+的网页仪表盘做了一套**中英双语汉化**，并把它包成了一个**原生 iOS App**（SwiftUI + WKWebView）。
+
+- 汉化是**注入式的**：不动固件任何一行逻辑代码，只往网页里加一层中文注释，随时可以一条命令还原成英文。
+- iOS App 是**纯外壳**：页面仍然由板子提供（`http://192.168.4.1`），App 负责全屏容器、本地网络权限、
+  连不上时的原生引导页、设置面板与缓存管理。已打包成未签名 IPA，可直接用 Sideloadly / AltStore 自签安装。
+
+![首页 · 深色](docs/screenshots/device-home-dark.png)
+
+<p align="center">
+  <img src="docs/screenshots/device-settings-dark.png" width="240" alt="设置页 · 深色">
+  <img src="docs/screenshots/device-home-light.png" width="240" alt="首页 · 浅色">
+  <img src="docs/screenshots/device-lab-dark.png" width="240" alt="LAB · 深色">
+</p>
+
+## 目录结构
+
+```
+.
+├── README.md                     # 本文件
+├── i18n/                         # 汉化补丁（注入式，不改固件逻辑）
+│   ├── zh-bilingual.js           #   850 条词典 + 正则规则 + 注入样式
+│   ├── apply_zh.py               #   注入 / 还原，可重生成 index_html.h
+│   └── README.md                 #   原理、覆盖率、排版坑、加词条方法
+├── ios/                          # iOS 外壳 App（SwiftUI，iOS 16+）
+│   ├── P4CAN/                    #   源码：入口、探活、网页容器、引导页、设置
+│   ├── P4CAN.xcodeproj/          #   Xcode 工程（含共享 scheme，可直接打开跑）
+│   ├── MacPreview/               #   macOS 真窗口预览（看液态玻璃，不入包）
+│   ├── demo/                     #   本机模拟设备（没有硬件也能看连上之后的页面）
+│   ├── tools/make-icon.py        #   图标流水线：源图 → 1024 满铺 → 各尺寸 + icns
+│   ├── 图标/                      #   图标成品、多尺寸、深浅桌面预览
+│   ├── 演示截图/                  #   App 内截图（含原厂固件下的英文界面）
+│   ├── build-ipa.sh              #   编译 + 打未签名 IPA
+│   └── README.md                 #   实现细节、视觉规范、预览方法
+├── dist/
+│   └── P4CAN-1.0.0-unsigned.ipa  # 未签名 IPA，2.3 MB
+└── docs/
+    ├── install-guide.html        # 安装指南（Sideloadly 签名 / Xcode 直装 / 排错）
+    ├── build-handbook.html       # 项目解读与硬件搭建手册
+    ├── flash-cheatsheet.html     # 烧录速查卡
+    ├── liquid-glass-design.html  # 液态玻璃设计稿（双机对照）
+    └── screenshots/              # 文档配图
+```
+
+## 一、汉化
+
+### 怎么用
+
+```bash
+# 1. 先自己 clone 上游固件（本仓库不包含上游任何代码）
+git clone https://github.com/06066060606060/P4can-universal-unlock.git
+cd P4can-universal-unlock
+
+# 2. 注入中文，并重生成页面数据文件
+python3 /path/to/i18n/apply_zh.py . --build
+
+# 3. 照上游原有流程用 arduino-cli 编译烧录
+```
+
+- 第 2 步的 `--build` 不能省：仪表盘是**编译进固件**的（`dashboard_source.html` → `tools/build_dashboard.py`
+  → `index_html.h`，gzip 后的字节数组），只改 html 不重生成头文件，烧进去不会变。
+- 想还原成纯英文：把 `--build` 换成 `--revert --build`，注入块会被整段删掉。
+- 补丁是幂等的，注入块由 `<!--P4ZH-BEGIN-->` / `<!--P4ZH-END-->` 包住，重复执行只替换这一段。
+
+### 效果与代价
+
+| | html | gzip（编进固件的就是这份） |
+|---|---|---|
+| 原始 | 363,346 | 82,091 |
+| 汉化后 | 432,638 | 108,154 |
+
+多 26 KB，占 4.8 MB APP 分区的 2.2%。软 AP 上首屏多 0.1~0.2 秒，之后走浏览器缓存。
+
+中文是 CSS `::after` 伪元素画出来的（保留英文原文，双语并列），所以：
+**不能被选中复制，Ctrl+F 也搜不到中文**。这是不改动原 DOM 的代价。浏览器控制台执行 `p4zh(false)`
+可以临时关掉。
+
+细节见 [`i18n/README.md`](i18n/README.md)——包括哪些内容**故意保持英文**（徽标、寄存器名、总线名）、
+几个必须知道的排版坑、以及怎么加词条。
+
+## 二、iOS App
+
+### 安装（不需要开发者账号）
+
+1. 下载 [`dist/P4CAN-1.0.0-unsigned.ipa`](dist/P4CAN-1.0.0-unsigned.ipa)（SHA-256 见文末）。
+2. 用 [Sideloadly](https://sideloadly.io/) 或 AltStore 自签：把 IPA 拖进窗口，填自己的 Apple ID，Start。
+3. 手机上 **设置 → 通用 → VPN 与设备管理 → 开发者 App** → 选自己的 Apple ID → **信任**。
+4. 免费账号签出来的证书 **7 天过期**，到期重新签一次即可（App 内数据不会丢）。
+
+也可以直接用 Xcode 打开 `ios/P4CAN.xcodeproj` 跑到手机上，或用 `ios/build-ipa.sh` 自己打一份。
+
+### 用法
+
+1. 板子上电，手机连它的热点 `P4-CAN-XXXX`（密码 `12345678`）。
+2. 打开 App。连不上时是原生引导页：三步说明、一键跳系统 WiFi 设置、手动填地址、常见问题排查。
+3. 连上后自动进入仪表盘。下拉刷新；**长按页面 0.7 秒**可随时打开 App 设置。
+4. App 设置里有：设备地址、外观（跟随系统 / 浅色 / 深色）、清除网页缓存、重新加载。
+
+### 实测过的两件事
+
+- **配原厂固件也能用**：界面是纯英文的原始页面，功能、排版都正常（[截图](docs/screenshots/device-stock-english.png)）。
+  区别只有一个——原厂固件没有汉化补丁插入的那行 `P4-CAN App` 入口，此时靠**长按页面**进 App 设置。
+- **切后台/断网不崩**：探活每 3 秒一次，失败自动回到引导页，回来时再自动跳回仪表盘。
+
+### 视觉
+
+控制层（引导页按钮、底部操作条、提示横幅）用 iOS 26 的液态玻璃 `glassEffect`，内容层一律标准材质卡片——
+这是 HIG 对 Liquid Glass 的硬性要求。旧系统自动回退 `ultraThinMaterial`，版式与信息层级不变。
+背景是纯色磨砂（深 `#0B0D11` / 浅 `#F4F6F9`）+ 极细噪点，支持跟随系统 / 手动明暗切换。
+
+设计稿：[`docs/liquid-glass-design.html`](docs/liquid-glass-design.html)
+
+<p align="center">
+  <img src="docs/screenshots/connect-dark.png" width="240" alt="未连接 · 引导页">
+  <img src="docs/screenshots/app-settings-dark.png" width="240" alt="App 设置面板">
+  <img src="docs/screenshots/connect-light.png" width="240" alt="未连接 · 浅色">
+</p>
+
+### 图标
+
+<p align="center">
+  <img src="docs/screenshots/icon-dark.png" width="420" alt="深色桌面">
+  <img src="docs/screenshots/icon-light.png" width="420" alt="浅色桌面">
+</p>
+
+## 三、没有硬件也想看效果
+
+`ios/demo/` 里有一个模拟设备：把汉化后的 `dashboard_source.html` 起成本地 HTTP，`/api/*` 用固定遥测数据应答，
+再用 macOS 预览窗口以"已连接"状态嵌进去——看到的就是真机画面。
+
+```bash
+cd ios/demo && bash demo.sh
+
+# 想直接停在某页 / 某个元素
+START_PAGE=settings SCROLL_TO='#p4canAppRow' bash demo.sh
+UNPATCHED=1 bash demo.sh          # 模拟原厂（未汉化）固件
+```
+
+## 四、从源码构建
+
+```bash
+cd ios
+bash build-ipa.sh                 # → dist/P4CAN-1.0.0-unsigned.ipa（未签名）
+python3 tools/make-icon.py 图.webp  # 换图标
+```
+
+需要 Xcode 16+ / iOS 26 SDK。`build-ipa.sh` 用 `CODE_SIGNING_ALLOWED=NO` 出未签名包，
+再打成 `Payload/` 结构的 zip——签名的活儿交给 Sideloadly。
+
+## 文档
+
+| 文档 | 内容 |
+|---|---|
+| [安装指南](docs/install-guide.html) | Sideloadly 签名步骤、Xcode 直装、常见报错、配哪种固件 |
+| [项目解读与搭建手册](docs/build-handbook.html) | 硬件清单、接线、编译环境、三路 CAN 说明 |
+| [烧录速查卡](docs/flash-cheatsheet.html) | 一页纸的编译烧录命令与分区参数 |
+| [液态玻璃设计稿](docs/liquid-glass-design.html) | 双机对照、色板、圆角与栅格 |
+
+## 致谢
+
+本项目**完全建立在**下面这个开源项目之上，没有它就没有这里的一切：
+
+- **[06066060606060 / P4can-universal-unlock](https://github.com/06066060606060/P4can-universal-unlock)**
+  —— ESP32-P4 三路 CAN 固件、网页仪表盘、车型 profile 与全部功能逻辑，均出自该项目作者。
+  汉化补丁只是给它加了一层中文注释，iOS App 只是给它套了一个原生外壳。
+  如果这个项目对你有用，请去上游仓库给原作者点 Star。
+
+本仓库**不包含**上游固件的任何源码或二进制，使用前请自行从上游获取，并遵守其许可与使用条款。
+
+## 说明
+
+- 汉化补丁与 iOS 外壳代码为本仓库作者编写，可自由参考、修改、再发布（保留本致谢即可）。
+- 所有操作均涉及**车辆改装**，存在安全与保修风险，请自行评估。请遵守当地法律法规，
+  仅在封闭道路或私人场地测试，不要在公共道路上使用影响安全的改装功能。
+- 固件与车辆的适配、刷写风险由使用者自行承担。
+
+---
+
+`dist/P4CAN-1.0.0-unsigned.ipa`
+
+```
+大小    2,380,330 字节
+SHA-256 334ddf6eee3f778712f99838ed9c7c2763418a0cc537faa85e0895012a7d066b
+```
