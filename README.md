@@ -1,15 +1,15 @@
-# P4-CAN 中英双语汉化 + iOS 外壳 App
+# P4-CAN 中文界面汉化 + iOS 外壳 App
 
 给 ESP32-P4 车载 CAN 控制器 **[P4can-universal-unlock](https://github.com/06066060606060/P4can-universal-unlock)**
-的网页仪表盘做了一套**中英双语汉化**，并把它包成了一个**原生 iOS App**（SwiftUI + WKWebView）。
+的网页仪表盘做了一套**中文界面汉化**，并把它包成了一个**原生 iOS App**（SwiftUI + WKWebView）。
 
-- 汉化是**注入式的**：不动固件任何一行逻辑代码，只往网页里加一层中文注释，随时可以一条命令还原成英文。
+- 汉化是**注入式的**：不动固件任何一行逻辑代码，只把页面上的英文换成中文，随时可以一条命令还原成英文。
 - iOS App 是**纯外壳**：页面仍然由板子提供（`http://192.168.4.1`），App 负责全屏容器、本地网络权限、
   连不上时的原生引导页、设置面板与缓存管理。已打包成未签名 IPA，可直接用 Sideloadly / AltStore 自签安装。
 - App **自带汉化脚本**，刷原厂英文固件也能显示中文；**没连设备**时还能进「界面预览」，用示例数据看仪表盘。
 
-> **下载**：[Releases · v1.2.0](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
-> —— 未签名 IPA（`P4CAN-1.2.0-unsigned.ipa`）+ 汉化脚本（`zh-bilingual.js`）
+> **下载**：[Releases · v1.3.0](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
+> —— 未签名 IPA（`P4CAN-1.3.0-unsigned.ipa`）+ 汉化脚本（`zh-bilingual.js`）
 
 ![首页 · 深色](docs/screenshots/device-home-dark.png)
 
@@ -19,13 +19,15 @@
   <img src="docs/screenshots/device-lab-dark.png" width="240" alt="LAB · 深色">
 </p>
 
+<p align="center"><sub>硬件实拍，摄于上一版「中英并列」；现在改成单语中文、排版更紧凑，效果见下方「界面预览」。</sub></p>
+
 ## 目录结构
 
 ```
 .
 ├── README.md                     # 本文件
 ├── i18n/                         # 汉化补丁（注入式，不改固件逻辑）
-│   ├── zh-bilingual.js           #   850 条词典 + 正则规则 + 注入样式
+│   ├── zh-bilingual.js           #   853 条词典 + 正则规则 + 文本替换引擎
 │   ├── apply_zh.py               #   注入 / 还原，可重生成 index_html.h
 │   └── README.md                 #   原理、覆盖率、排版坑、加词条方法
 ├── ios/                          # iOS 外壳 App（SwiftUI，iOS 16+）
@@ -42,7 +44,7 @@
 │   ├── build-ipa.sh              #   编译 + 打未签名 IPA
 │   └── README.md                 #   实现细节、视觉规范、预览方法
 ├── dist/
-│   └── P4CAN-1.2.0-unsigned.ipa  # 未签名 IPA，2.3 MB（Release 同步一份）
+│   └── P4CAN-1.3.0-unsigned.ipa  # 未签名 IPA，2.3 MB（Release 同步一份）
 └── docs/
     ├── install-guide.html        # 安装指南（Sideloadly 签名 / Xcode 直装 / 排错）
     ├── build-handbook.html       # 项目解读与硬件搭建手册
@@ -75,14 +77,13 @@ python3 /path/to/i18n/apply_zh.py . --build
 
 | | html | gzip（编进固件的就是这份） |
 |---|---|---|
-| 原始 | 363,346 | 82,091 |
-| 汉化后 | 432,638 | 108,154 |
+| 原始 | 365,384 | 82,209 |
+| 汉化后 | 434,844 | 109,422 |
 
-多 26 KB，占 4.8 MB APP 分区的 2.2%。软 AP 上首屏多 0.1~0.2 秒，之后走浏览器缓存。
+多 27 KB，占 4.8 MB APP 分区的 2.3%。软 AP 上首屏多 0.1~0.2 秒，之后走浏览器缓存。
 
-中文是 CSS `::after` 伪元素画出来的（保留英文原文，双语并列），所以：
-**不能被选中复制，Ctrl+F 也搜不到中文**。这是不改动原 DOM 的代价。浏览器控制台执行 `p4zh(false)`
-可以临时关掉。
+中文是**直接改写文本节点**写的：英文原文被换成中文，不是并排追加。所以能选中、能复制、Ctrl+F 也搜得到，
+页面上只有一份文字，不会因为多一行把窄卡片挤变形。原文存在内存里，控制台 `p4zh(false)` 可整体还原成英文。
 
 细节见 [`i18n/README.md`](i18n/README.md)——包括哪些内容**故意保持英文**（徽标、寄存器名、总线名）、
 几个必须知道的排版坑、以及怎么加词条。
@@ -92,7 +93,7 @@ python3 /path/to/i18n/apply_zh.py . --build
 ### 安装（不需要开发者账号）
 
 1. 到 [**Releases**](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest) 下载
-   `P4CAN-1.2.0-unsigned.ipa`（仓库内也留了一份 [`dist/`](dist/) 备份；SHA-256 见文末）。
+   `P4CAN-1.3.0-unsigned.ipa`（仓库内也留了一份 [`dist/`](dist/) 备份；SHA-256 见文末）。
 2. 用 [Sideloadly](https://sideloadly.io/) 或 AltStore 自签：把 IPA 拖进窗口，填自己的 Apple ID，Start。
 3. 手机上 **设置 → 通用 → VPN 与设备管理 → 开发者 App** → 选自己的 Apple ID → **信任**。
 4. 免费账号签出来的证书 **7 天过期**，到期重新签一次即可（App 内数据不会丢）。
@@ -114,7 +115,10 @@ App 里带了一份 `zh-bilingual.js`（就是 `i18n/` 里那一份，打包时�
 - 关掉 **设置 → 语言 → 中文界面** 就是原始的英文页面，改了立刻重新加载生效。
 - 注入发生在页面解析之后，为了不让你先看到一秒英文，`documentStart` 会把整页压成透明，
   注入完再淡入；脚本万一出错，1.2 秒的兜底定时器也会把页面显示出来（不会白屏）。
-- 中文仍然是 `::after` 伪元素，**不能选中复制、Ctrl+F 搜不到**——和固件内置汉化是同一套代价。
+- 中文是**直接写进文本节点**的（不是伪元素），所以**能选中、能复制，Ctrl+F 也能搜到**；
+  页面上只留一份文字，不会中英并排。原文记在内存里，控制台执行 `p4zh(false)` 可整体还原成英文。
+- 如果固件跑的是上游那套「EN / 中」语言层（页面右上角有那个小按钮），App 会主动让位，
+  并替你点一下切到中文，两套翻译不会互相覆盖。
 
 ### 没设备也能看：界面预览
 
@@ -183,7 +187,7 @@ UNPATCHED=1 bash demo.sh          # 模拟原厂（未汉化）固件
 
 ```bash
 cd ios
-bash build-ipa.sh                 # → dist/P4CAN-1.2.0-unsigned.ipa（未签名）
+bash build-ipa.sh                 # → dist/P4CAN-1.3.0-unsigned.ipa（未签名）
 python3 tools/make-icon.py 图.webp  # 换图标
 ```
 
@@ -223,9 +227,9 @@ python3 tools/make-icon.py 图.webp  # 换图标
 
 ---
 
-`dist/P4CAN-1.2.0-unsigned.ipa`（与 Release v1.2.0 附件为同一文件）
+`dist/P4CAN-1.3.0-unsigned.ipa`（与 Release v1.3.0 附件为同一文件）
 
 ```
-大小    2,435,817 字节
-SHA-256 7a6c611170c8a8e395cc383ca0badfc64dc4066de6a7680bf5caefd01bb732f0
+大小    2,437,030 字节
+SHA-256 2efcc48e5eed01e5843ec9dac64ec6e369842bbeadf156d6afa609d42efce23c
 ```

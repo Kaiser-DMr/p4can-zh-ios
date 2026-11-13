@@ -134,7 +134,7 @@
       <div class="sw on"></div>
     </div>
     <div class="quick wide" onclick="flip(this)">
-      <div><div class="qt">TLSSc</div><div class="qs">AP only · traffic light stop control</div></div>
+      <div><div class="qt">TLSSc</div><div class="qs">AP only</div></div>
       <div class="sw"></div>
     </div>
   </div>
@@ -171,7 +171,7 @@
         <div class="k" style="margin-top:8px">Fail</div><div class="n">0</div>
       </div>
     </div>
-    <div class="foot">Last TX 96 ms ago</div>
+    <div class="foot">Last TX <span>96 毫秒</span> ago</div>
   </div>
 </section>
 
@@ -197,7 +197,7 @@
     <div class="homeBusMeta">21,530 frames · 0 errors · 51 ms</div>
   </div>
 
-  <div class="paneltitle">Nodes</div>
+  <div class="paneltitle">Devices</div>
   <div class="listrow"><div><div class="listkey">R79</div><div class="listdesc">Injection · 0x2A1</div></div><span class="val">LIVE</span></div>
   <div class="listrow"><div><div class="listkey">BCM</div><div class="listdesc">Body control · 0x3D1</div></div><span class="val">LIVE</span></div>
   <div class="listrow"><div><div class="listkey">PSCM</div><div class="listdesc">Steering · 0x370</div></div><span class="val">LIVE</span></div>
@@ -216,11 +216,11 @@
 <!-- ================= 设置 ================= -->
 <section class="view" id="v-settings">
   <div class="paneltitle">Settings</div>
-  <div class="listrow"><div><div class="listkey">Vehicle profile</div><div class="listdesc">Model Y · 2024</div></div><span class="chev">›</span></div>
-  <div class="listrow"><div><div class="listkey">Network</div><div class="listdesc">P4-CAN-8F2A</div></div><span class="val">Connected</span></div>
+  <div class="listrow"><div><div class="listkey">Vehicle profile · locked at boot</div><div class="listdesc">Model Y · 2024</div></div><span class="chev">›</span></div>
+  <div class="listrow"><div><div class="listkey">Wi-Fi</div><div class="listdesc">P4-CAN-8F2A</div></div><span class="val">Connected</span></div>
   <div class="listrow"><div><div class="listkey">Firmware</div><div class="listdesc">P4-CAN Universal</div></div><span class="val">v3.29.3</span></div>
   <div id="rebootRow" class="listrow clickable" onclick="toast('Demo only · 示例页面不可重启设备')">
-    <div><div class="listkey">Reboot</div><div class="listdesc">Restart the controller</div></div>
+    <div><div class="listkey">Reboot P4-CAN</div><div class="listdesc">P4-CAN</div></div>
     <span class="chev">›</span>
   </div>
 </section>

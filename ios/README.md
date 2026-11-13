@@ -36,7 +36,7 @@ P4CAN-iOS/
 
 ```bash
 cd P4CAN-iOS
-./build-ipa.sh              # 默认 Release，产出 dist/P4CAN-1.2.0-unsigned.ipa
+./build-ipa.sh              # 默认 Release，产出 dist/P4CAN-1.3.0-unsigned.ipa
 ./build-ipa.sh Debug        # Debug 版
 ```
 
@@ -78,11 +78,13 @@ cd P4CAN-iOS
 | 原厂 v3.29.3 | 中文（App 注入） | 全部正常 | 长按页面 0.7 秒（首次进页面会提示一次） |
 | 打了汉化补丁的 v3.29.3 | 中文（固件自带） | 全部正常 | 网页"设置 → 系统 → P4-CAN App" |
 
-两条路径互不打架：补丁开头加了单例守卫，固件已经内置汉化时（`window.__p4zhBooted` 或
-`#p4zh-style` 已存在），App 注入的这份直接 `return`，页面元素只被标记一次。
+两条路径互不打架：补丁开头有单例守卫，固件已经内置汉化时（`window.__p4zhBooted` 或
+`#p4zh-style` 已存在），App 注入的这份直接 `return`。若固件内置的是上游那套「EN / 中」语言层
+（页面里有 `#p4canLangBtn`），App 也会让位，并替你点一下切到中文。
 
-汉化只改页面：加 `data-p4zh` 属性由 CSS `::after` 画中文，原文保留；不拦截请求、不改事件、
-不动固件逻辑。App 注入时同样如此，只是把这一步从"编译进固件"挪到了"加载后补一层"。
+汉化只改页面：把英文文本节点换成中文，`placeholder / title / aria-label` 一起换，
+不拦截请求、不改事件、不动固件逻辑。所以中文能选中、能复制、Ctrl+F 也搜得到，
+页面上只有一份文字，不会中英并排。原文记在 WeakMap 里，`p4zh(false)` 可整体还原成英文。
 
 App 设置里 **语言 → 中文界面** 可以关掉，关掉后重新加载即为原始英文页面。
 
@@ -93,13 +95,14 @@ App 设置里 **语言 → 中文界面** 可以关掉，关掉后重新加载�
 底部导航可切 Home / Devices / Settings / LAB，开关能点，用来演示或提前熟悉界面。
 
 示例页里的文案特意用上游仪表盘的真实词条（`Steering` / `Nag Killer` / `RUNNING` / `BODY` …），
-所以它同样会被 `zh-bilingual.js` 翻译——关掉中文开关再看一次，就能直观对比双语并列的效果。
+所以它同样会被 `zh-bilingual.js` 翻译——关掉中文开关再看一次，就是原始英文页面。
 
 > 想在本机看"原厂固件"下的样子：`UNPATCHED=1 bash demo.sh`（这时页面里没有任何中文，
 > 正好用来看注入前后的差别）。
 
 ## 版本
 
+- App 1.3.0 (4)：中文改用文本替换（可选中、可搜索、不再中英并排）
 - App 1.2.0 (3)：新增「界面预览」，没连设备也能看示例界面
 - App 1.1.0 (2)：App 侧中文注入（原厂固件也显示中文）+ 语言开关
 - 适配固件 P4-CAN Universal v3.29.3

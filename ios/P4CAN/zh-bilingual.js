@@ -1,16 +1,29 @@
-/* P4-CAN 中英双语补丁 v2 · 850 条
- * 注入位置：dashboard_source.html 的 </body> 之前，然后 build_dashboard.py 重生成 index_html.h。
- * v2 变更：不再依赖 class 白名单，改为遍历所有文本节点 + 词典精确匹配，
- *          因此新加的界面元素只要文案在词典里就会自动有中文。
- * 英文原文保持不变，中文用 CSS ::after 追加；<option> 例外，直接改文本。
- * 控制台执行 p4zh(false) 可即时切回纯英文。
- * v2.1：加单例守卫——同一个页面只启动一次。固件已内置本补丁时，
- *       iOS App 侧注入的同一份脚本会直接退出，避免两套 MutationObserver 互相打架。
+/* P4-CAN 中文补丁 v3 · 850 条
+ * 注入位置：dashboard_source.html 的 </body> 之前，然后 build_dashboard.py 重生成 index_html.h；
+ *           也可以由 iOS App 在页面加载后注入（WKUserScript），不必重刷固件。
+ * v3 变更：中文直接改写文本节点（node.nodeValue），不再用 CSS ::after 追加。
+ *          → 中文能选中、能复制、能 Ctrl+F 搜到；
+ *          → 只剩一份文字，不会中英并排，也不再有"中文撑破小卡片"的排版问题；
+ *          → placeholder / title / aria-label 一并翻译。
+ *          原文记在 WeakMap 里，p4zh(false) 可整体还原成英文。
+ * 词典仍是精确匹配（空白归一后比对），运行时拼接的句子由 RULES 兜底。
+ * 单例守卫：同一页面只启动一次；固件已内置本补丁（__p4zhBooted / #p4zh-style）
+ *          或已内置上游那套语言层（存在 #p4canLangBtn）时，注入的这份直接退出，
+ *          避免两套翻译同时改文本节点。
  */
 (function () {
-  // 已经启动过（固件内置的那份先跑了）或样式已存在，就不再重复启动。
   if (window.__p4zhBooted || document.getElementById('p4zh-style')) {
     window.__p4zhOwner = window.__p4zhOwner || 'firmware';
+    return;
+  }
+  // 上游 i18n 分支自带 EN/中 开关时让位，别去抢同一批文本节点。
+  // 但它的默认语言是英文，所以顺手点一下它自己的按钮切到中文（按钮上写着「中」就代表当前是英文）。
+  if (document.getElementById('p4canLangBtn')) {
+    window.__p4zhOwner = 'firmware-i18n';
+    var upBtn = document.getElementById('p4canLangBtn');
+    if (upBtn && upBtn.textContent.replace(/\s/g, '') === '中') {
+      try { upBtn.click(); } catch (e) {}
+    }
     return;
   }
   window.__p4zhBooted = true;
@@ -867,6 +880,9 @@
     "Country and map region can be selected independently. Country STOCK preserves the original values; US selects 840 / US, KOREA 410 / KR, and NEW ZEALAND 554 / NZ. Map STOCK preserves the original region; US selects 0 and KOREA 7. Country affects 0x238 and 0x7FF page 1; map region affects only 0x7FF page 3. Left/right-hand-drive and invalid or unknown stock values are preserved.": "国家与地图区域可独立选择。国家选原厂则保留原值；美国写 840 / US，韩国 410 / KR，新西兰 554 / NZ。地图选原厂则保留原区域；美国写 0，韩国写 7。国家影响 0x238 与 0x7FF 第 1 页；地图区域只影响 0x7FF 第 3 页。左右舵信息以及无效或未知的原厂值都会保留。",
     "Start each test condition immediately after pressing A–F. A = normal front view, B = short screen glance, C = sustained side look, D = look down, E = steering torque while looking away, F = front view with no intentional steering torque. All tracked IDs are observed on both physical CAN buses. Decoded interaction / hands-on / EPAS values are best-effort research fields; raw bytes plus the recorded CAN A/B and bus role are authoritative. This recorder is RX-only and never transmits CAN. Captured data clears after restart. Download it first.": "按下 A–F 后立刻开始对应动作。A = 正常正视前方，B = 短暂瞥一眼屏幕，C = 持续看侧面，D = 低头，E = 分神时施加转向扭矩，F = 正视且不刻意施加扭矩。所有被跟踪的 ID 都会在两路物理 CAN 上同时观察。解码出的交互 / 手握 / EPAS 数值只作研究参考，原始字节加上记录的 CAN A/B 与总线角色才是准的。本记录器只接收、从不发送 CAN。抓到的数据重启后清空，请先下载。",
     "Pedal Response sends one immediate best-effort 0x334 one-shot from the freshest stock template when the selector changes, then remains a volatile drive-session override using the normal stock-follow overlay. Selecting STOCK releases it immediately. CHILL, SPORT and PERFORMANCE remain armed for the current drive and are cleared by a positively observed Park gear or by P4-CAN reboot. CAN recovery does not write or restore a PedalMap value. AP Accel / Regen is now configured under Settings. When it is active it temporarily owns outgoing 0x334; the manual session target remains in RAM and resumes after AP exits.": "油门响应在选项变化时，会用最新的原厂模板立即发一帧尽力而为的 0x334，之后作为本次行车的临时覆盖跟随原厂帧。选「原厂」会立即释放。轻松 / 运动 / 性能 会保持到本次行车结束，被明确观察到的 P 挡或 P4-CAN 重启清除。CAN 恢复不会写入或还原油门映射值。AP 加速 / 回收 现在在设置里配置，激活时会临时占用 0x334，人工会话目标留在内存中，AP 退出后恢复。",
+    "Idle": "待命",
+    "DEFAULT": "默认",
+    "Off-Highway ALC": "非高速变道"
   };
 
   /* 首页三个方块太窄，用更短的词 */
@@ -889,52 +905,25 @@
   };
 
   var ON = true;
+  var MARK = 'data-zh';
   var STYLE_ID = 'p4zh-style';
+  var ATTRS = ['placeholder', 'title', 'aria-label'];
+
+  /* 原文与被写入的中文都记在 WeakMap 里，页面节点回收时自动释放。
+     ORIG   : 文本节点 → 英文原文
+     WROTE  : 文本节点 → 我们写进去的中文（用来判断这一轮是不是页面自己刷新的）
+     AORIG  : 元素 → { 属性名: 原文 }
+     TOUCHED/ATOUCHED 只用于"整体还原成英文"时遍历。 */
+  var ORIG = new WeakMap(), WROTE = new WeakMap(), AORIG = new WeakMap();
+  var TOUCHED = [], ATOUCHED = [];
 
   function injectStyle() {
     if (document.getElementById(STYLE_ID)) return;
     var st = document.createElement('style');
     st.id = STYLE_ID;
-    st.textContent =
-      '[data-p4zh]::after{content:attr(data-p4zh);font-weight:500;letter-spacing:0;' +
-      'text-transform:none;color:var(--muted,#8c8c88);opacity:.95}' +
-      '[data-p4zh-v="l"]::after{display:block;font-size:11px;line-height:1.35;' +
-      'margin-top:2px;white-space:normal}' +
-      '[data-p4zh-v="s"]::after{display:inline;font-size:9px;line-height:1.2;' +
-      'margin-left:3px;white-space:nowrap;opacity:.85}' +
-      '.pageTitle[data-p4zh]::after,.pageSub[data-p4zh]::after{display:block;font-size:13px;' +
-      'letter-spacing:.5px;opacity:1;margin-top:4px}' +
-      '.paneltitle[data-p4zh]::after,.panelHero[data-p4zh]::after{display:block;font-size:12px;opacity:1}' +
-      '.setupTitle[data-p4zh]::after{display:block;font-size:15px;opacity:1;margin-top:6px}' +
-      'h1[data-p4zh]::after{display:block;font-size:14px;opacity:1}' +
-      '.listdesc[data-p4zh]::after,.sectionnote[data-p4zh]::after{font-size:10.5px;color:#7a7a76}' +
-      '.btn[data-p4zh]::after,.setupPrimary[data-p4zh]::after,.setupSecondary[data-p4zh]::after{' +
-      'display:block;font-size:9.5px;margin-top:1px}' +
-      '.btn.primary[data-p4zh]::after,.setupPrimary[data-p4zh]::after{color:rgba(255,255,255,.72)}' +
-      '.homeBusVal[data-p4zh]::after,.value[data-p4zh]::after,' +
-      '.statusTag[data-p4zh]::after,.labValueV[data-p4zh]::after{' +
-      'display:block;font-size:8.5px;margin:1px 0 0;opacity:.9}' +
-      '.mode[data-p4zh]::after{display:block;font-size:14px;letter-spacing:0;margin-top:2px;opacity:.85}' +
-      '.homeMetaK[data-p4zh]::after{display:block;font-size:8px;margin:1px 0 0;opacity:.85}' +
-      '.homeBusTop{gap:5px}.homeBusName{min-width:0;white-space:nowrap;overflow:hidden}' +
-      '.homeBusMeta[data-p4zh]{font-size:0!important;line-height:0!important}' +
-      '.homeBusMeta[data-p4zh]::after{content:attr(data-p4zh)!important;display:block!important;' +
-      'font-size:8.5px!important;line-height:1.3!important;white-space:normal!important;' +
-      'color:var(--muted,#8c8c88)!important;opacity:1!important;margin:0!important}' +
-      '.navbtn[data-p4zh]::after{margin-left:2px;font-size:8px}' +
-      /* 标题后面的中文用一点间距隔开，别和英文黏成 "TLSSC红绿灯" */
-      '.quickMini .qt[data-p4zh]::after{display:inline;font-size:8px;margin-left:4px;' +
-      'opacity:.72;white-space:nowrap!important;max-width:100%;overflow:hidden;' +
-      'text-overflow:ellipsis;vertical-align:baseline}' +
-      /* 副标题整句本来就长，中文换到下一行独占整条宽度，避免截成 "等待 ..." */
-      '.quickMini .qs[data-p4zh]::after{display:block;font-size:7.5px;margin:1px 0 0;' +
-      'opacity:.8;white-space:nowrap!important;max-width:100%;overflow:hidden;' +
-      'text-overflow:ellipsis;line-height:1.25}' +
-      /* 三个速控块只有 ~100pt 宽，副标题塞进中文后容易撑破卡片，
-         这里统一单行截断，并让开关靠底，避免压到文字上。 */
-      '.quickMini{overflow:hidden}' +
-      '.quickMini .qs{min-height:10px}' +
-      '.quickMini .toggle{margin-top:auto!important}';
+    /* 只做一件事：被翻译过的元素去掉字距。仪表盘给大写英文压了 letter-spacing，
+       汉字会被拉开（"转向 灯"），这里抹平；不参与别的排版。 */
+    st.textContent = '[data-zh]{letter-spacing:0!important;text-transform:none!important}';
     (document.head || document.documentElement).appendChild(st);
   }
 
@@ -971,8 +960,26 @@
   }
 
   function norm(s) { return (s || '').replace(/\s+/g, ' ').trim(); }
+  function hasCJK(s) { return /[\u4e00-\u9fff]/.test(s || ''); }
 
-  /* 文本节点是否是父元素里"唯一有意义"的文字（允许同级有 svg 图标） */
+  /* 取相邻文本的边界字符：用来决定中文和邻居之间还要不要留空格 */
+  function edgeChar(node, dir) {
+    var n = dir < 0 ? node.previousSibling : node.nextSibling;
+    while (n) {
+      if (n.nodeType === 3) {
+        var v = n.nodeValue;
+        if (v && v.trim()) return dir < 0 ? v.charAt(v.length - 1) : v.charAt(0);
+      } else if (n.nodeType === 1) {
+        var t = n.textContent || '';
+        if (t.trim()) return dir < 0 ? t.charAt(t.length - 1) : t.charAt(0);
+      }
+      n = dir < 0 ? n.previousSibling : n.nextSibling;
+    }
+    return '';
+  }
+
+  /* 文本节点是否是父元素里"唯一有意义"的文字（允许同级有 svg 图标）。
+     防止把半句话的碎片替换掉，比如 <b>Nag</b> Killer 里的 Nag。 */
   function soleText(node) {
     var p = node.parentElement;
     if (!p) return false;
@@ -987,50 +994,101 @@
     return true;
   }
 
-  function handle(node) {
+  function skip(node) {
     var el = node.parentElement;
-    if (!el || !el.tagName) return;
+    if (!el || !el.tagName) return true;
     var tag = el.tagName;
-    if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'TEXTAREA') return;
-    if (el.namespaceURI && el.namespaceURI.indexOf('svg') !== -1) return;
-    if (el.hasAttribute('data-p4zh-skip')) return;
+    if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'TEXTAREA') return true;
+    if (el.namespaceURI && el.namespaceURI.indexOf('svg') !== -1) return true;
+    if (el.hasAttribute('data-zh-skip')) return true;
+    return false;
+  }
+
+  /* 单个文本节点：比对原文 → 写中文。重复调用是幂等的。 */
+  function handle(node) {
+    if (!ON || !node || node.nodeType !== 3) return;
+    if (skip(node)) return;
+
+    var el = node.parentElement;
+    var cn = el.className ? String(el.className) : '';
     /* 总线名后的 BODY/CHASSIS 不译：卡片第三行已有中文，避免挤掉徽标 */
-    if (el.className && String(el.className).indexOf('homeBusRole') !== -1) return;
-    /* 徽标只有 7px 高、十几个像素宽，中文必溢出；第三行已用中文说明状态 */
-    if (el.className && String(el.className).indexOf('badge') !== -1) return;
+    if (cn.indexOf('homeBusRole') !== -1) return;
+    /* 徽标只有 7px 高：只收 BADGE 里的两字短词，长的宁可不翻 */
+    var isBadge = cn.indexOf('badge') !== -1;
 
-    var raw = norm(node.nodeValue);
-    if (raw.length < 2 || raw.length > 600) return;
-    if (!soleText(node)) return;
+    var cur = node.nodeValue;
+    if (!ORIG.has(node)) { ORIG.set(node, cur); TOUCHED.push(node); }
+    var orig = ORIG.get(node);
 
-    if (tag === 'OPTION') {
-      var orig = el.getAttribute('data-zh-orig');
-      if (orig === null) { el.setAttribute('data-zh-orig', raw); orig = raw; }
-      var z = translate(orig);
-      if (z && norm(el.textContent) !== z) el.textContent = z;
-      return;
+    /* 页面自己刷新了这段文本（轮询刷新数值）：cur 既不是原文、也不是我们写的中文，
+       就把它当作新的原文。 */
+    if (cur !== orig && cur !== WROTE.get(node)) {
+      ORIG.set(node, cur);
+      orig = cur;
     }
 
-    var zh = translate(raw);
-    if (!zh) {
-      if (el.hasAttribute('data-p4zh')) {
-        el.removeAttribute('data-p4zh');
-        el.removeAttribute('data-p4zh-v');
-      }
-      return;
+    var t = norm(orig);
+    if (t.length < 2 || t.length > 600) return;
+    /* 整段文字才走精确匹配；夹在句子中间的一小段，只有在它本身正好是
+       一条完整词条时才替换，避免把 "Turn signal Off" 拆成半中半英。 */
+    var whole = soleText(node);
+    if (!whole && !ZH[t]) return;
+
+    var zh = translate(t);
+    if (!zh) return;
+    if (isBadge) {
+      if (!BADGE[t]) return;      // 徽标里没有短词就不翻，避免撑破
+      zh = BADGE[t];
+    } else if (el.closest && el.closest('.quickMini') && SHORT[t]) {
+      zh = SHORT[t];
     }
-    if (el.closest && el.closest('.quickMini') && SHORT[raw]) zh = SHORT[raw];
-    if (el.className && String(el.className).indexOf('badge') !== -1 && BADGE[raw]) zh = BADGE[raw];
-    var kind = raw.length > 12 ? 'l' : 's';
-    if (el.getAttribute('data-p4zh') !== zh) el.setAttribute('data-p4zh', zh);
-    if (el.getAttribute('data-p4zh-v') !== kind) el.setAttribute('data-p4zh-v', kind);
+
+    var lead = (orig.match(/^\s*/) || [''])[0];
+    var tail = (orig.match(/\s*$/) || [''])[0];
+    /* 中文和邻居都是汉字时不留空格，否则会渲染成 "96 毫秒 前" */
+    if (hasCJK(zh)) {
+      if (hasCJK(edgeChar(node, -1))) lead = '';
+      if (hasCJK(edgeChar(node, 1))) tail = '';
+    }
+    var want = lead + zh + tail;
+    if (cur !== want) {
+      node.nodeValue = want;
+      WROTE.set(node, want);
+    }
+    if (!el.hasAttribute(MARK)) el.setAttribute(MARK, '1');
+  }
+
+  /* placeholder / title / aria-label 一起翻，否则输入框、按钮提示还是英文 */
+  function applyAttrs(el) {
+    if (!el || el.nodeType !== 1) return;
+    for (var i = 0; i < ATTRS.length; i++) {
+      var a = ATTRS[i], v = el.getAttribute(a);
+      if (v == null) continue;
+      var memo = AORIG.get(el);
+      if (!memo) { memo = {}; AORIG.set(el, memo); ATOUCHED.push(el); }
+      if (!(a in memo)) memo[a] = v;
+      else if (v !== memo[a] && !hasCJK(v)) memo[a] = v;
+      var zh = translate(norm(memo[a]));
+      if (zh && v !== zh) el.setAttribute(a, zh);
+    }
+  }
+
+  function walk(root) {
+    if (!root) return;
+    if (root.nodeType === 3) { handle(root); return; }
+    if (root.nodeType !== 1) return;
+    applyAttrs(root);
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false), n;
+    while ((n = w.nextNode())) handle(n);
+    if (root.querySelectorAll) {
+      var els = root.querySelectorAll('[placeholder],[title],[aria-label]');
+      for (var i = 0; i < els.length; i++) applyAttrs(els[i]);
+    }
   }
 
   function sweep() {
     if (!ON || !document.body) return;
-    var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-    var n;
-    while ((n = w.nextNode())) handle(n);
+    walk(document.body);
   }
 
   var timer = null;
@@ -1041,32 +1099,49 @@
 
   function boot() {
     injectStyle();
+    try { document.documentElement.lang = 'zh-CN'; } catch (e) {}
     sweep();
+    /* 字符变化（轮询刷新数值）当场处理，不排队——排队会让英文先画出来再被替换，
+       看起来就是闪。整段重渲染才走 180ms 的兜底全量重扫。 */
     var mo = new MutationObserver(function (muts) {
+      /* p4zh(false) 还原英文时改的也是文本节点，必须停手，否则会立刻被翻回中文 */
+      if (!ON) return;
+      var dirty = false;
       for (var i = 0; i < muts.length; i++) {
-        if (muts[i].type === 'attributes') continue;
-        schedule();
-        return;
+        var m = muts[i];
+        if (m.type === 'characterData') { handle(m.target); continue; }
+        for (var j = 0; j < m.addedNodes.length; j++) {
+          var nd = m.addedNodes[j];
+          if (nd.nodeType === 3) handle(nd);
+          else if (nd.nodeType === 1) { walk(nd); dirty = true; }
+        }
       }
+      if (dirty) schedule();
     });
     mo.observe(document.body, { childList: true, subtree: true, characterData: true });
     window.__p4zhMO = mo;
     window.p4zhSweep = sweep;
+    window.__p4zhStats = function () {
+      return { lang: 'zh', nodes: TOUCHED.length, attrs: ATOUCHED.length, mark: document.querySelectorAll('[' + MARK + ']').length };
+    };
   }
 
   window.__p4zhDict = ZH;
 
+  /* 控制台 p4zh(false) 整体还原成英文，p4zh(true) 再翻回来 */
   window.p4zh = function (on) {
     ON = !!on;
-    document.body.classList.toggle('p4zh-off', !ON);
     if (!ON) {
-      var els = document.querySelectorAll('[data-p4zh]');
-      for (var i = 0; i < els.length; i++) {
-        els[i].removeAttribute('data-p4zh');
-        els[i].removeAttribute('data-p4zh-v');
+      for (var i = 0; i < TOUCHED.length; i++) {
+        var n = TOUCHED[i], o = ORIG.get(n);
+        if (o != null && n.nodeValue !== o) n.nodeValue = o;
       }
-      var opts = document.querySelectorAll('[data-zh-orig]');
-      for (var j = 0; j < opts.length; j++) opts[j].textContent = opts[j].getAttribute('data-zh-orig');
+      for (var j = 0; j < ATOUCHED.length; j++) {
+        var el = ATOUCHED[j], memo = AORIG.get(el);
+        for (var a in memo) if (el.getAttribute(a) !== memo[a]) el.setAttribute(a, memo[a]);
+      }
+      var marked = document.querySelectorAll('[' + MARK + ']');
+      for (var k = 0; k < marked.length; k++) marked[k].removeAttribute(MARK);
     } else {
       sweep();
     }

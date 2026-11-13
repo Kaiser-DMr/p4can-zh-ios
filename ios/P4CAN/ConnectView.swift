@@ -369,7 +369,7 @@ struct ConnectView: View {
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("App 1.2.0 (3) · 固件 P4-CAN Universal v3.29.3")
+            Text("App 1.3.0 (4) · 固件 P4-CAN Universal v3.29.3")
             Text("界面由设备自带网页提供，本 App 仅作原生外壳")
         }
         .font(.caption2)

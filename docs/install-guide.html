@@ -63,9 +63,9 @@
 <h2><span class="n">1</span>成品信息</h2>
 <div class="card">
   <dl class="kv">
-    <dt>安装包</dt><dd>P4CAN-iOS/dist/P4CAN-1.2.0-unsigned.ipa（2.3 MB）</dd>
+    <dt>安装包</dt><dd>P4CAN-iOS/dist/P4CAN-1.3.0-unsigned.ipa（2.3 MB）</dd>
     <dt>Bundle ID</dt><dd>com.p4can.universal</dd>
-    <dt>版本</dt><dd>1.2.0 (Build 3)</dd>
+    <dt>版本</dt><dd>1.3.0 (Build 4)</dd>
     <dt>最低系统</dt><dd>iOS 16.0（iOS 26 及以上启用液态玻璃，旧系统自动回退材质，版式不变）</dd>
     <dt>架构</dt><dd>arm64（真机，不含模拟器切片）</dd>
     <dt>签名状态</dt><dd>未签名 —— 本机没有 Apple 开发者证书，需你用自己 Apple ID 签一次</dd>
@@ -115,7 +115,7 @@
   <ol>
     <li>从 <code>sideloadly.io</code> 下载 Mac 版并打开。</li>
     <li>iPhone 用数据线连 Mac，手机上点「信任此电脑」。</li>
-    <li>把 <code>dist/P4CAN-1.2.0-unsigned.ipa</code> 拖进 Sideloadly 窗口。</li>
+    <li>把 <code>dist/P4CAN-1.3.0-unsigned.ipa</code> 拖进 Sideloadly 窗口。</li>
     <li>在 <b>Apple ID</b> 一栏填你的 Apple ID，点 <b>Start</b>，输入密码（部分账号需要 App 专用密码）。</li>
     <li>装完在手机上：<b>设置 → 通用 → VPN 与设备管理 → 开发者 App</b> → 选你的 Apple ID → <b>信任</b>。</li>
   </ol>
@@ -133,7 +133,7 @@
   </ol>
   <p>命令行重新出包：</p>
   <pre><code>cd P4CAN-iOS
-./build-ipa.sh          # 产出 dist/P4CAN-1.2.0-unsigned.ipa</code></pre>
+./build-ipa.sh          # 产出 dist/P4CAN-1.3.0-unsigned.ipa</code></pre>
 </div>
 
 <h2><span class="n">5</span>第一次打开要注意</h2>
@@ -180,7 +180,7 @@
   <table>
     <tr><th>页面</th><th>作用</th></tr>
     <tr><td class="k">连接引导页</td><td>三步图文说明热点连接、一键跳「无线局域网」设置、手动改设备 IP、连不上的排查清单。</td></tr>
-    <tr><td class="k">仪表盘（网页）</td><td>设备自带页面，已是你之前那套中英双语汉化版，功能完全一致。</td></tr>
+    <tr><td class="k">仪表盘（网页）</td><td>设备自带页面，已汉化成中文，功能完全一致。</td></tr>
     <tr><td class="k">设置面板</td><td>设备地址、保持屏幕常亮、清除网页缓存、重新加载、版本信息。以半透明材质 sheet 呈现，底下内容仍在。</td></tr>
   </table>
   <p style="margin:8px 0 0;color:var(--sub);font-size:12.5px">
@@ -234,14 +234,15 @@
     想把界面换回英文，App 设置 → 语言 → 关掉「中文界面」即可，立刻重新加载生效。
   </p>
   <p style="margin:10px 0 0;color:var(--sub);font-size:12.5px">
-    汉化只改前端页面：给文字元素加 <code>data-p4zh</code> 属性、由 CSS <code>::after</code> 画中文，原文一个字没删；
+    汉化只改前端页面：把英文文本节点换成中文（<code>placeholder / title / aria-label</code> 一起换），
     不拦截任何请求、不改事件处理、不碰固件逻辑（CAN / AP / Profile 都在 <code>.ino</code> 里，未改动）。
-    代价是页面 gzip 体积 82 KB → 108 KB，首屏多传 26 KB，软 AP 上约多 0.1–0.2 秒。
+    中文因此能选中、能复制、Ctrl+F 也搜得到。
+    代价是页面 gzip 体积 82 KB → 109 KB，首屏多传 27 KB，软 AP 上约多 0.1–0.2 秒。
   </p>
 </div>
 
 <footer>
-  P4CAN iOS 1.2.0 · 对应固件 P4-CAN Universal v3.29.3 · 工程源码在 P4CAN-iOS/，仅作网页原生外壳，不含车辆控制代码。
+  P4CAN iOS 1.3.0 · 对应固件 P4-CAN Universal v3.29.3 · 工程源码在 P4CAN-iOS/，仅作网页原生外壳，不含车辆控制代码。
 </footer>
 
 </div>
