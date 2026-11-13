@@ -20,7 +20,6 @@ struct DeviceWebView: UIViewRepresentable {
     let reloadToken: Int
     /// 是否注入中文（App 设置里可关）
     var zhEnabled: Bool = true
-    @Binding var isLoading: Bool
     var onNavigationFailed: (String) -> Void
     var onAppSettings: () -> Void
     /// 加载完成后探测网页里是否有原生入口行：true 有、false 没有（原厂固件）
@@ -47,7 +46,9 @@ struct DeviceWebView: UIViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
+        #if DEBUG
         if #available(iOS 16.4, *) { webView.isInspectable = true }
+        #endif
 
         let refresh = UIRefreshControl()
         refresh.tintColor = UIColor(Theme.accent)
@@ -197,12 +198,7 @@ struct DeviceWebView: UIViewRepresentable {
 
         // MARK: WKNavigationDelegate
 
-        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-            parent.isLoading = true
-        }
-
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            parent.isLoading = false
             webView.scrollView.refreshControl?.endRefreshing()
             probeInjectedRow(in: webView, attempt: 0)
         }
@@ -242,7 +238,6 @@ struct DeviceWebView: UIViewRepresentable {
         }
 
         private func finishWithFailure(_ error: Error) {
-            parent.isLoading = false
             webView?.scrollView.refreshControl?.endRefreshing()
             let ns = error as NSError
             if ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled { return }

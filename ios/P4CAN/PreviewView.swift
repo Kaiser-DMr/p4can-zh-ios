@@ -33,9 +33,12 @@ struct PreviewView: View {
             Image(systemName: "xmark")
                 .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
+                // 视觉仍是 36pt 胶囊，命中区补到 HIG 要求的 44pt
+                .frame(width: 36, height: 36)
                 .background(.ultraThinMaterial, in: Circle())
                 .overlay { Circle().strokeBorder(.white.opacity(0.16), lineWidth: 0.8) }
+                .frame(width: Metrics.minTap, height: Metrics.minTap)
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("关闭预览")
@@ -62,7 +65,9 @@ private struct PreviewWebView: UIViewRepresentable {
         webView.scrollView.backgroundColor = .black
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.allowsLinkPreview = false
+        #if DEBUG
         if #available(iOS 16.4, *) { webView.isInspectable = true }
+        #endif
 
         if let file = Bundle.main.url(forResource: "preview", withExtension: "html") {
             webView.loadFileURL(file, allowingReadAccessTo: file.deletingLastPathComponent())

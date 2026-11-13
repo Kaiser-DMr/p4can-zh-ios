@@ -70,8 +70,9 @@ extension Color {
 
 /// 颜色 / 圆角 / 间距 / 控件尺寸
 enum Theme {
-    // 品牌青绿。深色下用亮青，浅色下压深，保证正文对比度 ≥ 4.5:1。
-    static let accentLight = RGBA(r: 0.043, g: 0.529, b: 0.471)
+    // 品牌青绿。深色下用亮青，浅色下压深。
+    // 浅色值按 WCAG 复算过：底 4.98:1、卡片材质 5.22:1（原 4.09/4.29 不达 4.5）。
+    static let accentLight = RGBA(r: 0.035, g: 0.470, b: 0.415)
     static let accentDark = RGBA(r: 0.290, g: 0.850, b: 0.760)
     static let accent = Color.adaptive(accentLight, accentDark)
 
@@ -80,10 +81,6 @@ enum Theme {
         RGBA(r: 0.090, g: 0.520, b: 0.470)
     )
 
-    static let sky = Color.adaptive(
-        RGBA(r: 0.129, g: 0.353, b: 0.780),
-        RGBA(r: 0.260, g: 0.450, b: 0.880)
-    )
     static let warn = Color.adaptive(
         RGBA(r: 0.702, g: 0.416, b: 0.000),
         RGBA(r: 1.000, g: 0.740, b: 0.320)
@@ -135,6 +132,19 @@ enum Metrics {
 
     /// 控制层统一高度：底部主按钮与圆形图标按钮共用，保证同一基线。
     static let controlHeight: CGFloat = 46
+
+    /// 连接页内容相对顶部玻璃按钮的下沉量，与底部玻璃控制条的高度。
+    /// 两处留白由浮层高度推导，改按钮尺寸时一起改，避免内容被玻璃压住。
+    static let floatingTopInset: CGFloat = 64
+    static let floatingBottomInset: CGFloat = 148
+
+    /// 横屏（verticalSizeClass == .compact）下的同一组留白：
+    /// 393pt 高度里再去掉 212pt，首屏就什么都看不到了。
+    static let compactTopInset: CGFloat = 32
+    static let compactBottomInset: CGFloat = 92
+
+    /// iPad / 横屏下的正文最大宽度：超过后行长过长，反而难读。
+    static let readableWidth: CGFloat = 560
 }
 
 // MARK: - 外观设置
@@ -320,10 +330,12 @@ extension View {
         }
     }
 
-    /// iOS 26 的滚动边缘效果，旧系统为无操作
+    /// iOS 26 的滚动边缘效果，旧系统为无操作。
+    /// 可用性判断必须带上 macOS —— 预览目标也编译这个文件，
+    /// 只写 iOS 会让 macOS < 26 踩到不存在的 API。
     @ViewBuilder
     func p4ScrollEdgeSoft() -> some View {
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             self.scrollEdgeEffectStyle(.soft, for: .top)
         } else {
             self

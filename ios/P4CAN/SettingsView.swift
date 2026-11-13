@@ -43,6 +43,10 @@ struct SettingsView: View {
                 }
             }
             .onAppear { hostDraft = model.host }
+            .onReceive(model.$host) { newValue in
+                guard !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+                hostDraft = newValue
+            }
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
@@ -233,7 +237,7 @@ struct SettingsView: View {
                 Text(AppInfo.versionLine).foregroundStyle(.secondary)
             }
             LabeledContent("适配固件") {
-                Text("v3.29.3").foregroundStyle(.secondary)
+                Text(AppInfo.expectedFirmware).foregroundStyle(.secondary)
             }
             LabeledContent("探测次数") {
                 Text("\(model.probeCount)").foregroundStyle(.secondary).monospacedDigit()

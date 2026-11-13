@@ -24,6 +24,148 @@
 
 ---
 
+## 0.1 修复记录（2026-11-13 · 审查后第一轮）
+
+P1 全部 6 条已修，P2 修 3 条，P3 清掉 8 条。下面每条都写了**根因**、**改法**与**怎么验证的**。
+
+| 编号 | 问题 | 根因 | 状态 |
+|---|---|---|---|
+| P1-1 | 「跟随系统」永远深色 | 应用级 `UIUserInterfaceStyle` 盖住了呈现级的 `preferredColorScheme(nil)` | ✅ 删键 |
+| P1-2 | 探活失败卸载 WebView | `RootView` 用 `state.isOnline` 二选一，且单次失败即置 offline | ✅ 保活 + 3 次阈值 |
+| P1-3 | VoiceOver 点不到「重试」 | `.combine` 把子树合成单一静态元素，Button 语义被吞 | ✅ `.contain` |
+| P1-4 | 浅色对比度 4.09:1 | `accentLight` 压得不够深；页脚用 `.tertiary` | ✅ 4.98/5.22 |
+| P1-5 | 非法地址永久转圈 | `URL(string:)` 为 nil 时静默 return，状态停在 `.probing` | ✅ 校验 + 明确报错 |
+| P1-6 | 关闭键 32pt | 视觉尺寸当成了命中尺寸 | ✅ 视觉 36 / 命中 44 |
+| P2-1 | 地址两页不同步 | `onAppear` 只做一次性快照 | ✅ 改 `onReceive` |
+| P2-2 | 版本号 4 处硬编码 | 发版靠手工同步 | ✅ 已在上轮收敛到 `Info.plist` |
+| P2-7 | iPad / 横屏无适配 | 缺 `maxWidth`，横屏留白按竖屏算 | ⚠️ 部分修（见下） |
+| P2-8 | 后台仍 3 秒轮询 | 没接 `scenePhase` | ✅ 后台停、回前台立即探一次 |
+| P3-1/2/3 | `LinkState.reason`、`Theme.sky`、`markOnlineAgain` 死代码 | 重构遗留 | ✅ 删除 |
+| P3-4 | `isLoading` 只写不读 | 加载骨架屏没做完 | ✅ 删除该绑定 |
+| P3-5 | `lastSuccess` 只写不读 | 与保活需求重复 | ✅ 由 `hasBeenOnline` 替代 |
+| P3-6 | `p4ScrollEdgeSoft` 缺 macOS 判断 | 双平台文件只写了 iOS | ✅ 双平台 `#available` |
+| P3-7 | `isInspectable` 在 Release 也开 | 未包 `#if DEBUG` | ✅ |
+| P3-8 | `helpItem(_:_ body:)` 遮蔽 `var body` | 参数命名 | ✅ 改 `detail` |
+| P3-9 | 64 / 148 魔法数字 | 未进设计令牌 | ✅ `Metrics.floatingTop/BottomInset` |
+| P3-10 | 页脚写死固件版本 | 两处各写一份 | ✅ 统一 `AppInfo.expectedFirmware` |
+| P3-11/12 | 私有 scheme、不可达分支 | 无说明 | ✅ 补注释（行为不变） |
+| P3-14 | 启动屏只有深色 | `LaunchBg` 缺 light 变体 | ✅ 补 light/dark |
+
+### P1-1 强制深色
+
+`Info.plist` 里删掉 `UIUserInterfaceStyle=Dark`，同时删掉 `UIStatusBarStyle=UIStatusBarStyleLightContent`
+（`UIViewControllerBasedStatusBarAppearance=true` 时它本来就被忽略，是死键）。
+
+删掉应用级 override 后会带来一个新问题：浅色系统下启动屏仍是深色（`LaunchBg` 只有一套值），
+进 App 会闪一下。所以同步给 `LaunchBg.colorset` 补了 light 变体（`#F4F6F9`），深色保持 `#0B0D11`，
+与 `Theme.baseLight/baseDark` 对齐。
+
+> 进入仪表盘后仍强制深色，这是**呈现级** override（`RootView.activeScheme`），不受影响。
+
+### P1-2 WebView 保活
+
+根因有两层：`RootView` 用「在线 / 不在线」二选一决定是否渲染 WebView，而 `probe()` 在**任何一次**
+失败（每 3 秒一次、超时 2.5 秒）就置 `.offline`。设备在返回 430 KB 页面期间偶发超时，就会
+销毁 WebView → 3 秒后重建 → 重新下载 + 重新跑注入。
+
+改法：
+
+```swift
+// AppModel
+@Published private(set) var hasBeenOnline = false   // 只增不减
+private static let failuresBeforeOffline = 3
+private func recordSuccess() { consecutiveFailures = 0; hasBeenOnline = true; … }
+private func recordFailure(_ msg: String) {
+    consecutiveFailures += 1
+    let threshold = hasBeenOnline ? Self.failuresBeforeOffline : 1
+    guard consecutiveFailures >= threshold else { return }
+    …
+}
+```
+
+```swift
+// RootView
+private var showsDashboard: Bool { model.state.isOnline || model.hasBeenOnline }
+```
+
+阈值分两档：**没连上过时第一次失败就报错**（用户此刻需要知道「连不上」），连上过之后容忍两次抖动。
+降级后页面不销毁，只在顶部出现一条带「重新探测」的提示。
+
+副作用需要知情：设备真的关机后，App 会停在最后一次成功的页面上并持续提示离线，不会自动退回连接页。
+这是刻意的取舍——行驶中丢页面比看到旧页面更糟。回到连接页可以长按页面进设置改地址，或直接杀掉重开。
+
+### P1-5 地址校验
+
+新增 `AppModel.sanitizedHost(_:)`（纯函数、可单测）：剥 scheme / 路径、只允许 `[A-Za-z0-9.-:]`、
+端口必须是 1–65535 的数字、不允许连续冒号。`probe()` 拿不到合法 host 时直接落到
+`.offline("地址格式不正确，请填写 IP 或 IP:端口")`，不再静默 return。
+
+同时把 `baseURL` 也基于同一口径（`requestHost ?? defaultHost`），消掉「状态卡显示坏地址、
+实际探默认地址」的不一致。`normalizedHost` 仍原样回显用户输入，便于对照自己输错在哪。
+
+### P1-4 对比度
+
+`accentLight` 由 `(0.043, 0.529, 0.471)` 改为 `(0.035, 0.470, 0.415)`，色相不变：
+
+| 前景 / 背景 | 修复前 | 修复后 |
+|---|---|---|
+| accentLight / `baseLight` | 4.09 : 1 | **4.98 : 1** |
+| accentLight / 卡片材质 | 4.29 : 1 | **5.22 : 1** |
+
+页脚两行 11pt 从 `.tertiary`（2.63:1）改 `.secondary`（深色 7.27:1 / 浅色 5.61:1）；
+`previewCard` 的 chevron 是图形元素（要求 3:1），`.tertiary` 只有 2.63:1，同样改 `.secondary`。
+
+### P2-1 的坑：`onChange` 会冲掉输入框
+
+第一版写成 `.onChange(of: model.host) { draftHost = $0 }`，结果**地址输入框变空**
+（macOS 26 预览窗口必现；截图上框里什么都没有）。加临时调试文本后确认：
+
+```
+DBG host=[192.168.4.1] draft=[192.168.4.1]
+```
+
+数据是对的，说明不是绑定问题，而是这行 `onChange` 在视图重建时带着旧值（空串）回调了一次，
+把 `draftHost` 冲成 `""` 后没有再触发。换成不会回放初始值的订阅写法：
+
+```swift
+.onReceive(model.$host) { newValue in
+    guard !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+    draftHost = newValue
+}
+```
+
+连接页与设置页两处都用这个写法。教训：**给 TextField 做同步时不要用 `onChange` 传单值闭包**，
+它在视图身份重建的时机上不可靠，`onReceive` + 空值守卫更稳。
+
+### 验证手段
+
+| 项 | 命令 | 结果 |
+|---|---|---|
+| 类型检查 | `swiftc -typecheck P4CAN/*.swift` | 0 warning / 0 error |
+| 完整构建 | `xcodebuild -sdk iphonesimulator build` | BUILD SUCCEEDED |
+| 状态机回归 | `bash tests/run-probe-check.sh` | **29 项全过** |
+| 产物 plist | `plutil -p P4CAN.app/Info.plist` | 无 `UIUserInterfaceStyle` / `UIStatusBarStyle` |
+| 启动色 | `assetutil --info Assets.car` | `LaunchBg` 在内，含 light/dark 两套 |
+| 界面 | 预览窗口截图（深浅 + 设置面板） | 布局无回归，地址框有值 |
+
+`tests/run-probe-check.sh` 用 `URLProtocol` 桩驱动真实 `AppModel`，覆盖：14 组地址校验、
+首次成功、连上后 1/2 次失败保持 online、第 3 次降级、恢复、冷启动首次失败、非法地址、401 视为在线。
+为此给 `AppModel.init` 加了 `session:` 注入参数（默认 `nil` 走原逻辑），顺带完成 P2-9 的注入缝。
+
+### 本轮未修（附原因）
+
+| 编号 | 原因 |
+|---|---|
+| P2-3 网页不响应 Dynamic Type | 需要改注入脚本按 `preferredContentSizeCategory` 调 `-webkit-text-size-adjust`，并处理字号变化的重新注入，属于交互设计决策 |
+| P2-4 离屏渲染验证失效 | 需引入 XCUITest target，工程目前没有测试宿主 |
+| P2-5 卡片去 material/shadow | 属视觉风格调整，会改变观感，等产品确认 |
+| P2-6 `FrostGrain` 逐点绘制 | 优化项（iPad 约 2.8 万椭圆），不影响正确性 |
+| P2-7 iPad/横屏适配 | **部分已修**：正文与底部操作条都限宽 `560` 居中（实测 1366pt 横屏两侧留白、行长正常）；横屏 `verticalSizeClass == .compact` 时上下留白由 64/148 收到 32/92。剩下的是产品决策：要不要保留 iPad 声明、横屏下仪表盘网页的降级策略 |
+| P2-9 其余测试 | 已补注入缝与状态机用例；XCUITest 与 UI 层断言未做 |
+| P3-13 AppIcon 深色/tinted 变体 | 需要生成并入库 tinted 源图 |
+
+---
+
 ## 1. 审查方法与可复现证据
 
 | 项目 | 命令 | 结果 |

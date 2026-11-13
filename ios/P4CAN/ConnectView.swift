@@ -5,6 +5,8 @@ import UIKit
 
 struct ConnectView: View {
     @EnvironmentObject private var model: AppModel
+    /// 横屏时垂直空间只有 393pt，仍用竖屏的上下留白会让首屏几乎看不到内容
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     @State private var draftHost: String = ""
     @State private var showHelp = false
@@ -26,8 +28,11 @@ struct ConnectView: View {
                     footer
                 }
                 .padding(.horizontal, Metrics.screenPadding)
-                .padding(.top, 64)     // 让内容从顶部玻璃按钮下方开始
-                .padding(.bottom, 148) // 底部操作区留白，内容可滚到玻璃之下
+                .padding(.top, topInset)       // 让内容从顶部玻璃按钮下方开始
+                .padding(.bottom, bottomInset) // 底部操作区留白，内容可滚到玻璃之下
+                // iPad / 横屏下限制正文宽度并居中：整屏宽的行长会超过可读区间
+                .frame(maxWidth: Metrics.readableWidth)
+                .frame(maxWidth: .infinity)
             }
         }
         .overlay(alignment: .topTrailing) {
@@ -41,10 +46,28 @@ struct ConnectView: View {
         }
         .overlay(alignment: .bottom) {
             bottomControls
+                // 与正文同宽：iPad 上不该拉成一条 1300pt 的主按钮
+                .frame(maxWidth: Metrics.readableWidth)
                 .padding(.horizontal, Metrics.screenPadding)
                 .padding(.bottom, 10)
         }
         .onAppear { draftHost = model.host }
+        // 设置面板改了地址后，连接页的输入框要跟着变——
+        // 以前只在 onAppear 快照一次，用户会看到旧地址却探新地址。
+        // 用 onReceive 而不是 onChange：`onChange(of:)` 在视图重建时会带着
+        // 旧的空值回调一次，把已经填好的输入框冲空（实测 macOS 26 必现）。
+        .onReceive(model.$host) { newValue in
+            guard !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+            draftHost = newValue
+        }
+    }
+
+    private var isCompactHeight: Bool { verticalSizeClass == .compact }
+    private var topInset: CGFloat {
+        isCompactHeight ? Metrics.compactTopInset : Metrics.floatingTopInset
+    }
+    private var bottomInset: CGFloat {
+        isCompactHeight ? Metrics.compactBottomInset : Metrics.floatingBottomInset
     }
 
     // MARK: - 标题
@@ -140,6 +163,7 @@ struct ConnectView: View {
         case .probing:
             return "正在探测 \(model.normalizedHost)"
         case .online:
+            // 探活成功到 RootView 换页之间只存在一帧，留作文案上的过渡态
             return "\(model.normalizedHost) · 正在加载仪表盘"
         case .offline(let reason):
             return reason
@@ -291,7 +315,8 @@ struct ConnectView: View {
 
                     Image(systemName: "chevron.right")
                         .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.tertiary)
+                        // 非文本元素要求 3:1，tertiary 在深色下只有 2.63:1
+                        .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal, 18)
                 .padding(.vertical, 15)
@@ -348,7 +373,7 @@ struct ConnectView: View {
         }
     }
 
-    private func helpItem(_ title: String, _ body: String) -> some View {
+    private func helpItem(_ title: String, _ detail: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Circle()
                 .fill(.tertiary)
@@ -358,7 +383,7 @@ struct ConnectView: View {
                 Text(title)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
-                Text(body)
+                Text(detail)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -373,7 +398,9 @@ struct ConnectView: View {
             Text("界面由设备自带网页提供，本 App 仅作原生外壳")
         }
         .font(.caption2)
-        .foregroundStyle(.tertiary)
+        // tertiary 在深浅两套底上分别只有 2.63:1 / 3.4:1，11pt 正文不达 4.5:1
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -421,6 +448,9 @@ struct ConnectView: View {
         model.probeOnce()
     }
 
+    /// 直达「无线局域网」页。`App-Prefs:` 是未公开 scheme，只对侧载/自签包有效，
+    /// 走 App Store 审核会被拒；后续方案是改跳 App 自己的设置页
+    /// （`UIApplication.openSettingsURLString`，已在 `tryOpen` 里做兜底）。
     private func openWiFiSettings() {
         #if canImport(UIKit)
         tryOpen(["App-Prefs:root=WIFI", "App-Prefs:WIFI", "prefs:root=WIFI"], at: 0)
