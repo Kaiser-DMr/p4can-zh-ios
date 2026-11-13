@@ -44,6 +44,8 @@
 
   .grid3{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
   .grid3 .wide{grid-column:1 / -1}
+  /* 三条总线并排：真机仪表盘是三等分，这里也三等分，否则第三张会留一个空格子 */
+  .grid3.busrow{grid-template-columns:1fr 1fr 1fr;gap:8px}
 
   .quick{background:var(--card);border-radius:20px;padding:14px 14px 12px;min-height:120px;
     display:flex;flex-direction:column;justify-content:space-between}
@@ -139,7 +141,7 @@
     </div>
   </div>
 
-  <div class="grid3">
+  <div class="grid3 busrow">
     <div class="bus">
       <div class="head"><span>CAN 1</span><span class="tag"><span class="dot"></span>RUNNING</span></div>
       <div class="homeBusName">BODY</div>

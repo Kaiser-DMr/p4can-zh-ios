@@ -36,7 +36,7 @@ P4CAN-iOS/
 
 ```bash
 cd P4CAN-iOS
-./build-ipa.sh              # 默认 Release，产出 dist/P4CAN-1.3.0-unsigned.ipa
+./build-ipa.sh              # 默认 Release，产出 dist/P4CAN-1.3.1-unsigned.ipa
 ./build-ipa.sh Debug        # Debug 版
 ```
 
@@ -102,6 +102,7 @@ App 设置里 **语言 → 中文界面** 可以关掉，关掉后重新加载�
 
 ## 版本
 
+- App 1.3.1 (5)：示例页三条总线卡片改三等分（393 宽不再折行留空格）；版本号收敛到工程设置单一来源
 - App 1.3.0 (4)：中文改用文本替换（可选中、可搜索、不再中英并排）
 - App 1.2.0 (3)：新增「界面预览」，没连设备也能看示例界面
 - App 1.1.0 (2)：App 侧中文注入（原厂固件也显示中文）+ 语言开关

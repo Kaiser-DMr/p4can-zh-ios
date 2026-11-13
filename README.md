@@ -8,8 +8,8 @@
   连不上时的原生引导页、设置面板与缓存管理。已打包成未签名 IPA，可直接用 Sideloadly / AltStore 自签安装。
 - App **自带汉化脚本**，刷原厂英文固件也能显示中文；**没连设备**时还能进「界面预览」，用示例数据看仪表盘。
 
-> **下载**：[Releases · v1.3.0](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
-> —— 未签名 IPA（`P4CAN-1.3.0-unsigned.ipa`）+ 汉化脚本（`zh-bilingual.js`）
+> **下载**：[Releases · v1.3.1](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
+> —— 未签名 IPA（`P4CAN-1.3.1-unsigned.ipa`）+ 汉化脚本（`zh-bilingual.js`）
 
 ![首页 · 深色](docs/screenshots/device-home-dark.png)
 
@@ -44,7 +44,7 @@
 │   ├── build-ipa.sh              #   编译 + 打未签名 IPA
 │   └── README.md                 #   实现细节、视觉规范、预览方法
 ├── dist/
-│   └── P4CAN-1.3.0-unsigned.ipa  # 未签名 IPA，2.3 MB（Release 同步一份）
+│   └── P4CAN-1.3.1-unsigned.ipa  # 未签名 IPA，2.3 MB（Release 同步一份）
 └── docs/
     ├── install-guide.html        # 安装指南（Sideloadly 签名 / Xcode 直装 / 排错）
     ├── build-handbook.html       # 项目解读与硬件搭建手册
@@ -93,7 +93,7 @@ python3 /path/to/i18n/apply_zh.py . --build
 ### 安装（不需要开发者账号）
 
 1. 到 [**Releases**](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest) 下载
-   `P4CAN-1.3.0-unsigned.ipa`（仓库内也留了一份 [`dist/`](dist/) 备份；SHA-256 见文末）。
+   `P4CAN-1.3.1-unsigned.ipa`（仓库内也留了一份 [`dist/`](dist/) 备份；SHA-256 见文末）。
 2. 用 [Sideloadly](https://sideloadly.io/) 或 AltStore 自签：把 IPA 拖进窗口，填自己的 Apple ID，Start。
 3. 手机上 **设置 → 通用 → VPN 与设备管理 → 开发者 App** → 选自己的 Apple ID → **信任**。
 4. 免费账号签出来的证书 **7 天过期**，到期重新签一次即可（App 内数据不会丢）。
@@ -187,7 +187,7 @@ UNPATCHED=1 bash demo.sh          # 模拟原厂（未汉化）固件
 
 ```bash
 cd ios
-bash build-ipa.sh                 # → dist/P4CAN-1.3.0-unsigned.ipa（未签名）
+bash build-ipa.sh                 # → dist/P4CAN-1.3.1-unsigned.ipa（未签名）
 python3 tools/make-icon.py 图.webp  # 换图标
 ```
 
@@ -227,9 +227,9 @@ python3 tools/make-icon.py 图.webp  # 换图标
 
 ---
 
-`dist/P4CAN-1.3.0-unsigned.ipa`（与 Release v1.3.0 附件为同一文件）
+`dist/P4CAN-1.3.1-unsigned.ipa`（与 Release v1.3.1 附件为同一文件）
 
 ```
-大小    2,437,030 字节
-SHA-256 2efcc48e5eed01e5843ec9dac64ec6e369842bbeadf156d6afa609d42efce23c
+大小    2,437,744 字节
+SHA-256 af02ebed476e30ce3fdbfee860549c22a306d743864c2b53b21f86a7771b6094
 ```

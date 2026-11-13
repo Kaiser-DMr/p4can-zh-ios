@@ -5,6 +5,26 @@ import UIKit
 import AppKit
 #endif
 
+// MARK: - 版本信息
+
+/// 版本号的唯一来源是工程设置（`MARKETING_VERSION` / `CURRENT_PROJECT_VERSION`），
+/// 运行时从 Info.plist 读。以前在 build 脚本和两个视图里各手抄一份，发版时必然漏改。
+enum AppInfo {
+    static var version: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    }
+
+    static var build: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
+    }
+
+    /// 形如 `1.3.1 (5)`
+    static var versionLine: String { "\(version) (\(build))" }
+
+    /// 固件版本只有连上设备才知道，这里只声明本版适配的固件线。
+    static let expectedFirmware = "v3.29.3"
+}
+
 // MARK: - 颜色工具
 
 /// 一组 sRGB 分量，用来声明亮/暗两套色值。

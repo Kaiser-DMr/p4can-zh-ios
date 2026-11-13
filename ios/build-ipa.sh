@@ -5,8 +5,13 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 APP_NAME="P4CAN"
-VERSION="1.3.0"
 CONF="${1:-Release}"
+
+# 版本号唯一来源是工程设置，避免脚本和 pbxproj 各写一份而漏改。
+VERSION="${VERSION:-$(grep -m1 'MARKETING_VERSION = ' P4CAN.xcodeproj/project.pbxproj \
+  | sed -E 's/.*= *([^;]+);/\1/')}"
+[ -n "$VERSION" ] || { echo "!! 无法从 pbxproj 读出 MARKETING_VERSION"; exit 1; }
+echo "==> 版本 ${VERSION}"
 
 # 汉化脚本的唯一来源是 ../i18n/zh-bilingual.js，打包前同步进 App 资源目录，
 # 避免两份文件各改各的。改完文案只需动 i18n/ 那份。

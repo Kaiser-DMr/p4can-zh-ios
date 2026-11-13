@@ -10,23 +10,31 @@ cd "$(dirname "$0")"
 APP=P4CANPreview.app
 SDK=$(xcrun --sdk macosx --show-sdk-path)
 
+# 版本号跟真机包一致，否则设置面板会显示 "App 1.0 (1)"，看不出真实效果。
+VER=$(grep -m1 'MARKETING_VERSION = ' ../P4CAN.xcodeproj/project.pbxproj | sed -E 's/.*= *([^;]+);/\1/')
+BLD=$(grep -m1 'CURRENT_PROJECT_VERSION = ' ../P4CAN.xcodeproj/project.pbxproj | sed -E 's/.*= *([^;]+);/\1/')
+VER=${VER:-1.0}; BLD=${BLD:-1}
+
 echo "==> 重建应用包"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 # Dock 里显示应用图标（由 tools/make-icon.py 生成）
 [ -f ../图标/AppIcon.icns ] && cp ../图标/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
-cat > "$APP/Contents/Info.plist" <<'PLIST'
+# 汉化脚本：和真实 IPA 一样放进包内，否则 ZhPatch.isAvailable 为 false，
+# 设置面板会显示「安装包内没有汉化脚本」的降级文案，看不出真实效果。
+[ -f ../../i18n/zh-bilingual.js ] && cp ../../i18n/zh-bilingual.js "$APP/Contents/Resources/zh-bilingual.js"
+cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleShortVersionString</key><string>1.0</string>
+	<key>CFBundleShortVersionString</key><string>${VER}</string>
 	<key>CFBundleIdentifier</key><string>com.p4can.preview</string>
 	<key>CFBundleName</key><string>P4CAN 预览</string>
 	<key>CFBundleDisplayName</key><string>P4CAN 预览</string>
 	<key>CFBundleExecutable</key><string>P4CANPreview</string>
 	<key>CFBundlePackageType</key><string>APPL</string>
-	<key>CFBundleVersion</key><string>1</string>
+	<key>CFBundleVersion</key><string>${BLD}</string>
 	<key>CFBundleIconFile</key><string>AppIcon</string>
 	<key>NSPrincipalClass</key><string>NSApplication</string>
 	<key>NSHighResolutionCapable</key><true/>
