@@ -143,7 +143,7 @@ enum Metrics {
     static let compactTopInset: CGFloat = 32
     static let compactBottomInset: CGFloat = 92
 
-    /// iPad / 横屏下的正文最大宽度：超过后行长过长，反而难读。
+    /// 横屏下的正文最大宽度：超过后行长过长，反而难读。
     static let readableWidth: CGFloat = 560
 }
 

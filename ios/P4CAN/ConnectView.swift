@@ -30,7 +30,7 @@ struct ConnectView: View {
                 .padding(.horizontal, Metrics.screenPadding)
                 .padding(.top, topInset)       // 让内容从顶部玻璃按钮下方开始
                 .padding(.bottom, bottomInset) // 底部操作区留白，内容可滚到玻璃之下
-                // iPad / 横屏下限制正文宽度并居中：整屏宽的行长会超过可读区间
+                // 横屏（852pt 宽）下限制正文宽度并居中：整屏宽的行长会超过可读区间
                 .frame(maxWidth: Metrics.readableWidth)
                 .frame(maxWidth: .infinity)
             }
@@ -46,7 +46,7 @@ struct ConnectView: View {
         }
         .overlay(alignment: .bottom) {
             bottomControls
-                // 与正文同宽：iPad 上不该拉成一条 1300pt 的主按钮
+                // 与正文同宽：横屏下不该拉成一条 800pt 的主按钮
                 .frame(maxWidth: Metrics.readableWidth)
                 .padding(.horizontal, Metrics.screenPadding)
                 .padding(.bottom, 10)
