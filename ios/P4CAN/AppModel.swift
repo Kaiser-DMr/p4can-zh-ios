@@ -206,7 +206,8 @@ final class AppModel: ObservableObject {
 
     private func recordSuccess() {
         consecutiveFailures = 0
-        hasBeenOnline = true
+        // @Published 不做相等比较，每 3 秒重复赋 true 会让整个 RootView 白刷新一次
+        if !hasBeenOnline { hasBeenOnline = true }
         if !state.isOnline {
             state = .online
             applyIdleTimer()
