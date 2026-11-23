@@ -1,5 +1,13 @@
 # P4-CAN 中文界面汉化 + iOS 外壳 App
 
+> [!IMPORTANT]
+> **本项目已停止更新（2026-11-23）**，后续功能与修复全部迁移到新项目：
+> **[P4 管家 · p4can-companion](https://github.com/Kaiser-DMr/p4can-companion)** →
+>
+> 新项目是完整的原生 iOS / iPadOS / macOS 控制台，直接对接设备 HTTP API，已内置中文界面，
+> 不再需要网页套壳与注入式汉化。本仓库仅作历史存档保留：Release、未签名 IPA 与汉化脚本仍可下载，
+> 但不再继续维护，issue / PR 可能不再处理。**新装用户请直接使用新项目。**
+
 给 ESP32-P4 车载 CAN 控制器 **[P4can-universal-unlock](https://github.com/06066060606060/P4can-universal-unlock)**
 的网页仪表盘做了一套**中文界面汉化**，并把它包成了一个**原生 iOS App**（SwiftUI + WKWebView）。
 
@@ -8,8 +16,10 @@
   连不上时的原生引导页、设置面板与缓存管理。已打包成未签名 IPA，可直接用 Sideloadly / AltStore 自签安装。
 - App **自带汉化脚本**，刷原厂英文固件也能显示中文；**没连设备**时还能进「界面预览」，用示例数据看仪表盘。
 
-> **下载**：[Releases · v1.3.2](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
+> **下载（存档版本）**：[Releases · v1.3.2](https://github.com/Kaiser-DMr/p4can-zh-ios/releases/latest)
 > —— 未签名 IPA（`P4CAN-1.3.2-unsigned.ipa`）+ 汉化脚本（`zh-bilingual.js`）
+>
+> 🆕 **想用新版本**：请到 [p4can-companion · Releases](https://github.com/Kaiser-DMr/p4can-companion/releases) 下载 P4 管家。
 
 ![首页 · 深色](docs/screenshots/device-home-dark.png)
 
